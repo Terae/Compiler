@@ -9,7 +9,7 @@
 %token tCONST tINT tVOID tCHAR tENUM
 %token tIF tELSE tSWITCH tCASE tDEFAULT tFOR tWHILE tDO tBREAK tCONTINUE
 %token tAND tOR tTRUE tFALSE
-%token tACCO tACCF tPARO tPARF
+%token tACCO tACCF tPARO tPARF tCROO tCROF
 %token tPLUS tMINUS tDIV tSTAR tMOD tEQUAL tSEMI tCOMMA tNOT
 %token tID tNBR
 
@@ -23,23 +23,46 @@ Fonctions : Fonction Fonctions | Fonction;
 
 Fonction : Type tID tPARO Args tPARF Body;
 
-Type : tINT | tCONST tINT | tVOID;
+Type : tINT | tCONST tINT | tVOID | tCHAR | tCONST tCHAR;
 
 Body : tACCO Instrs tACCF;
 
+End : tSEMI;
+
+TypedDefNext : End | tCOMMA TypedDef;
+
+TypedDef : tID TypedDefNext | tID tEQUAL Exp TypedDefNext
+
 Instrs : Instr Instrs | /* epsilon */;
 
-Instr : Dec | Aff | If | While;
+Instr : Def | Aff | If | While;
 
 Args : | ArgsList;
 
 ArgsList : Arg | ArgsList tCOMMA Arg;
 
-Arg : Type tID;
+Arg : Type | Type tID;
 
-Dec : Type tID tSEMI;
+Def : Type TypedDef;
 
-Exp : /* TODO */;
+Exp : tID
+    | tNBR
+    | tTRUE
+    | tFALSE
+    | tSTAR Exp
+    | Exp tCROO Exp tCROF
+    | tID tPARO Args tPARF
+    | tPRINTF tPARO Exp tPARF
+    | Exp tEQUAL Exp
+    | Exp tPLUS Exp
+    | Exp tMINUS Exp
+    | Exp tSTAR Exp
+    | Exp tDIV Exp
+    | Exp tMOD Exp
+    | tNOT Exp
+    | Exp tAND Exp
+    | Exp tOR Exp;
+
 Aff : tID tEQUAL Exp tSEMI;
 
 If : tIF tPARO Exp tPARF Body;
