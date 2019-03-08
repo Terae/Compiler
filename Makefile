@@ -14,8 +14,10 @@ build: lex
 all: clean
 	$(MAKE) lex
 	$(MAKE) build
+	$(MAKE) run
 
 run:build
-	./$(PROG_NAME)
+	cat input
+	./$(PROG_NAME) < input
 
 $(V).SILENT:
