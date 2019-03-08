@@ -1,23 +1,22 @@
-.PHONY: build clean lex
+.PHONY: clean yacc lex build run all
 .DEFAULT_GOAL:= all
 
-PROG_NAME=20100
+PROG_NAME=20100.out
 clean:
-	rm -f *.yy.c $(PROG_NAME)
+	rm -f *.c *.h $(PROG_NAME)
+
+yacc:
+	yacc -d compiler.y
 
 lex:
 	flex compiler.l
 
-build: lex
-	gcc -o $(PROG_NAME) lex.yy.c -ll
+build: yacc lex
+	gcc -o $(PROG_NAME) lex.yy.c y.tab.c -ll
 
-all: clean
-	$(MAKE) lex
-	$(MAKE) build
-	$(MAKE) run
-
-run:build
-	cat input
+run: build
 	./$(PROG_NAME) < input
+
+all: clean build run
 
 $(V).SILENT:
