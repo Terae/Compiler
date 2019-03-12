@@ -43,7 +43,7 @@ TypedDef : tID TypedDefNext | tID tEQUAL Exp TypedDefNext
 
 Instrs : Instr Instrs | /* epsilon */;
 
-Instr : Def | Aff | If | While;
+Instr : Def | Aff | If | While | tPRINTF tPARO Exp tPARF End;
 
 Args : | ArgsList;
 
@@ -53,6 +53,11 @@ Arg : Type | Type tID;
 
 Def : Type TypedDef;
 
+Aff : tID tEQUAL Exp tSEMI;
+
+If : tIF tPARO Exp tPARF Body;
+
+While : tWHILE tPARO Exp tPARF Body;
 
 Exp : tID
     | tNBR
@@ -61,7 +66,6 @@ Exp : tID
     | tSTAR Exp
     /*| Exp tCROO Exp tCROF*/
     | tID tPARO Args tPARF
-    | tPRINTF tPARO Exp tPARF
     | Exp tEQUAL Exp
     | Exp tPLUS Exp
     | Exp tMINUS Exp
@@ -70,14 +74,8 @@ Exp : tID
     | Exp tMOD Exp
     | tNOT Exp
     | Exp tAND Exp
-    | Exp tOR Exp;
-
-Aff : tID tEQUAL Exp tSEMI;
-
-If : tIF tPARO Exp tPARF Body;
-
-While : tWHILE tPARO Exp tPARF Body;
-
+    | Exp tOR Exp
+		| tPARO Exp tPARF;
 %%
 
 void yyerror(const char* msg) {
