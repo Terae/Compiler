@@ -18,13 +18,27 @@
 
 %start S
 
-%left tEQUAL
+%right tEQUAL /* +=, -=, >>=, ... */
+
+%right tQUESTION tCOLON
+
 %left tOR
 %left tAND
+/* left
+   |
+   ^
+   ==, <=, >=, <, >, !=
+   >>, <<
+*/
 %left tPLUS tMINUS
 %left tSTAR tDIV tMOD
+%right tAMP
 %right tNOT
 %left tCROO tCROF tPARO tPARF
+%right tINCR tDECR
+
+%nonassoc EndIf
+%nonassoc tELSE
 
 %%
 
@@ -34,7 +48,7 @@ Fonctions : Fonction Fonctions | Fonction;
 
 Type : tINT | tCONST tINT | tVOID | tCHAR | tCONST tCHAR;
 
-Fonction : Type tID tPARO TypedArgs tPARF FunctionBody | Type tID tPARO TypedArgs tPARF End;
+Fonction : Type tID tPARO Params tPARF FunctionBody | Type tID tPARO Params tPARF End;
 
 FunctionBody : tACCO { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } } Instrs tACCF;
 
@@ -48,18 +62,18 @@ TypedDef : tID TypedDefNext | tID tEQUAL Exp TypedDefNext
 
 Def : Type TypedDef;
 
-TypedArgs : { implementation_enabled = 1; } | TypedArgsNamedList { implementation_enabled = 1; } | TypedArgsUnnamedList { implementation_enabled = 0; };
+Params : { implementation_enabled = 1; } | ParamsNamedList { implementation_enabled = 1; } | ParamsUnnamedList { implementation_enabled = 0; };
 
 // int a, char c, ...
 // Left recursion is better than right recursion for memory management (not so much 'shift' before reduce-ing)
-TypedArgsNamedList : TypedArgNamed | TypedArgsNamedList tCOMMA TypedArgNamed;
+ParamsNamedList : ParamNamed | ParamsNamedList tCOMMA ParamNamed;
 
-TypedArgNamed : Type tID;
+ParamNamed : Type tID;
 
 // int, char, ...
-TypedArgsUnnamedList : TypedArgUnnamed | TypedArgsUnnamedList tCOMMA TypedArgUnnamed;
+ParamsUnnamedList : ParamUnnamed | ParamsUnnamedList tCOMMA ParamUnnamed;
 
-TypedArgUnnamed : Type;
+ParamUnnamed : Type;
 
 // toto, a, ...
 Args : | ArgsList;
@@ -70,6 +84,8 @@ Arg : Exp;
 
 Exp : tID
     | tNBR
+    | tCHAR_LITERAL
+    | tSTRING_LITERAL
     | tTRUE
     | tFALSE
     | tSTAR tID /* TODO: check si tID correspond à un pointeur dans la partie sémantique */
@@ -88,13 +104,18 @@ Exp : tID
 
 Aff : tID tEQUAL Exp End;
 
-If : tIF tPARO Exp tPARF Body;
+If : tIF CondIf Body %prec EndIf
+   | tIF CondIf Body tELSE Body;
+
+CondIf : tPARO Exp tPARF;
 
 While : tWHILE tPARO Exp tPARF Body;
 
+DoWhile : tDO Body tWHILE tPARO Exp tPARF
+
 Instrs : Instr Instrs | /* epsilon */;
 
-Instr : Def | Aff | If | While | tPRINTF tPARO Exp tPARF End;
+Instr : Def | Aff | If | While | DoWhile | tPRINTF tPARO Exp tPARF End;
 
 %%
 
