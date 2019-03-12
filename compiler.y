@@ -15,6 +15,10 @@
 
 %start S
 
+%left tPLUS tMINUS tMOD
+%left tSTAR tDIV
+%left tCROO tCROF tPARO tPARF
+
 %%
 
 S : Fonctions;
@@ -45,12 +49,13 @@ Arg : Type | Type tID;
 
 Def : Type TypedDef;
 
+
 Exp : tID
     | tNBR
     | tTRUE
     | tFALSE
     | tSTAR Exp
-    | Exp tCROO Exp tCROF
+    /*| Exp tCROO Exp tCROF*/
     | tID tPARO Args tPARF
     | tPRINTF tPARO Exp tPARF
     | Exp tEQUAL Exp

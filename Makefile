@@ -6,7 +6,7 @@ clean:
 	rm -f *.c *.h $(PROG_NAME)
 
 yacc:
-	yacc -d compiler.y
+	yacc -d compiler.y -v
 
 lex:
 	flex compiler.l
