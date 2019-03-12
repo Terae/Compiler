@@ -18,7 +18,7 @@ number          {digit}+
 <LCOMMENT_MODE>"\n" {BEGIN(INITIAL);}
 <LCOMMENT_MODE>.    {}
 
-"main"          {ECHO; return tMAIN;}
+"main"          {ECHO; return tID;}
 "printf"        {ECHO; return tPRINTF;}
 
 "const"         {ECHO; return tCONST;}

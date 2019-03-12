@@ -13,4 +13,6 @@ void print   (int myVariable, char AnOtHeR_1_variable)    {
     if(true) {
         int d = 8 - 5;
     }
+
+    printf(5);
 }

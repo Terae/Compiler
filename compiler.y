@@ -22,6 +22,7 @@
 %left tAND
 %left tPLUS tMINUS
 %left tSTAR tDIV tMOD
+%right tNOT
 %left tCROO tCROF tPARO tPARF
 
 %%
@@ -44,10 +45,6 @@ TypedDefNext : End | tCOMMA TypedDef;
 
 TypedDef : tID TypedDefNext | tID tEQUAL Exp TypedDefNext
 
-Instrs : Instr Instrs | /* epsilon */;
-
-Instr : Def | Aff | If | While;
-
 Def : Type TypedDef;
 
 Args : { implementation_enabled = 1; } | ArgsNamedList { implementation_enabled = 1; } | ArgsUnnamedList { implementation_enabled = 0; };
@@ -69,8 +66,7 @@ Exp : tID
     | tFALSE
     | tSTAR tID /* TODO: check si tID correspond à un pointeur dans la partie sémantique */
     /*| Exp tCROO Exp tCROF*/
-    | tID tPARO  tPARF
-    | tPRINTF tPARO Exp tPARF
+    | tID tPARO Args tPARF
     | Exp tEQUAL Exp
     | Exp tPLUS Exp
     | Exp tMINUS Exp
@@ -79,13 +75,18 @@ Exp : tID
     | Exp tMOD Exp
     | tNOT Exp
     | Exp tAND Exp
-    | Exp tOR Exp;
+    | Exp tOR Exp
+    | tPARO Exp tPARF;
 
-Aff : tID tEQUAL Exp tSEMI;
+Aff : tID tEQUAL Exp End;
 
 If : tIF tPARO Exp tPARF Body;
 
 While : tWHILE tPARO Exp tPARF Body;
+
+Instrs : Instr Instrs | /* epsilon */;
+
+Instr : Def | Aff | If | While | tPRINTF tPARO Exp tPARF End;
 
 %%
 
