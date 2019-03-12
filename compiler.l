@@ -4,7 +4,10 @@
 
 identifier      [_a-zA-Z][_a-zA-Z0-9]*
 digit           [0-9]
-number          {digit}+
+octoDigit       [0-7]
+hexaDigit       [0-9a-fA-F]
+number          (({digit}+)|(0{octoDigit}+)|((0x|0X){hexaDigit}+))
+numberExp       {digit}+(\.{digit}+)?((E|e)[+\-]?{digit}+)?
 
 %x COMMENT_MODE
 %x LCOMMENT_MODE
@@ -63,3 +66,4 @@ number          {digit}+
 
 {identifier}    {ECHO; return tID;}
 {number}        {ECHO; return tNBR;}
+{numberExp}     {ECHO; return tNBR;}

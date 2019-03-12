@@ -9,10 +9,21 @@ void print   (int myVariable, char AnOtHeR_1_variable)    {
     int a = 5;
     int b;
     c = 5;
+    int a, b, c, d = 8, e, f = 9;
 
     if(true) {
         int d = 8 - 5;
     }
 
+    while (false) {
+        char c = 8;
+    }
+
     printf(5);
+
+    int a, b, c = 8;
+
+    int r = ((8 + 9) * (a - 4)) / 7;
+
+    int a = f_call(toto, 8, 0x8F, 05, 10e8);
 }

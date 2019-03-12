@@ -33,7 +33,7 @@ Fonctions : Fonction Fonctions | Fonction;
 
 Type : tINT | tCONST tINT | tVOID | tCHAR | tCONST tCHAR;
 
-Fonction : Type tID tPARO Args tPARF FunctionBody | Type tID tPARO Args tPARF End;
+Fonction : Type tID tPARO TypedArgs tPARF FunctionBody | Type tID tPARO TypedArgs tPARF End;
 
 FunctionBody : tACCO { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } } Instrs tACCF;
 
@@ -47,18 +47,25 @@ TypedDef : tID TypedDefNext | tID tEQUAL Exp TypedDefNext
 
 Def : Type TypedDef;
 
-Args : { implementation_enabled = 1; } | ArgsNamedList { implementation_enabled = 1; } | ArgsUnnamedList { implementation_enabled = 0; };
+TypedArgs : { implementation_enabled = 1; } | TypedArgsNamedList { implementation_enabled = 1; } | TypedArgsUnnamedList { implementation_enabled = 0; };
 
 // int a, char c, ...
 // Left recursion is better than right recursion for memory management (not so much 'shift' before reduce-ing)
-ArgsNamedList : ArgNamed | ArgsNamedList tCOMMA ArgNamed;
+TypedArgsNamedList : TypedArgNamed | TypedArgsNamedList tCOMMA TypedArgNamed;
 
-ArgNamed : Type tID;
+TypedArgNamed : Type tID;
 
 // int, char, ...
-ArgsUnnamedList : ArgUnnamed | ArgsUnnamedList tCOMMA ArgUnnamed;
+TypedArgsUnnamedList : TypedArgUnnamed | TypedArgsUnnamedList tCOMMA TypedArgUnnamed;
 
-ArgUnnamed : Type;
+TypedArgUnnamed : Type;
+
+// toto, a, ...
+Args : | ArgsList;
+
+ArgsList : Arg | ArgsList tCOMMA Arg;
+
+Arg : Exp;
 
 Exp : tID
     | tNBR
