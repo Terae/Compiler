@@ -20,6 +20,7 @@
 %left tAND
 %left tPLUS tMINUS tMOD
 %left tSTAR tDIV
+%right tNOT
 %left tCROO tCROF tPARO tPARF
 
 %%
