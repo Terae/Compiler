@@ -1,7 +1,9 @@
 .PHONY: clean yacc lex build run all
 .DEFAULT_GOAL:= all
 
-PROG_NAME=20100.out
+PROG_NAME=YaccUza
+# yaccuza
+# duralex
 clean:
 	rm -f *.c *.h $(PROG_NAME)
 

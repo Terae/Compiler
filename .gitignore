@@ -161,3 +161,4 @@ bin-release/
 # End of https://www.gitignore.io/api/c,flex,clion
 *.yy.c
 y.tab.*
+y.output

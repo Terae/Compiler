@@ -47,8 +47,6 @@ number          {digit}+
 "}"             {ECHO; return tACCF;}
 "("             {ECHO; return tPARO;}
 ")"             {ECHO; return tPARF;}
-"["             {ECHO; return tCROO;}
-"]"             {ECHO; return tCROF;}
 [ \t]+          {ECHO;}
 [\n]            {ECHO;}
 

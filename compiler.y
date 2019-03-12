@@ -9,12 +9,15 @@
 %token tCONST tINT tVOID tCHAR tENUM
 %token tIF tELSE tSWITCH tCASE tDEFAULT tFOR tWHILE tDO tBREAK tCONTINUE
 %token tAND tOR tTRUE tFALSE
-%token tACCO tACCF tPARO tPARF tCROO tCROF
+%token tACCO tACCF tPARO tPARF 
 %token tPLUS tMINUS tDIV tSTAR tMOD tEQUAL tSEMI tCOMMA tNOT
 %token tID tNBR
 
 %start S
 
+%left tEQUAL
+%left tOR
+%left tAND
 %left tPLUS tMINUS tMOD
 %left tSTAR tDIV
 %left tCROO tCROF tPARO tPARF
