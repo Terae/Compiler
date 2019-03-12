@@ -165,3 +165,4 @@ bin-release/
 y.tab.*
 y.output
 YaccUza
+src/syntax.output
