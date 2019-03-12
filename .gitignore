@@ -161,8 +161,10 @@ bin-release/
 .model
 
 # End of https://www.gitignore.io/api/c,flex,clion
-*.yy.c
+src/*.yy.c
+src/*.yy.h
 y.tab.*
 y.output
 YaccUza
 src/syntax.output
+build/
