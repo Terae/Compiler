@@ -1,3 +1,10 @@
+void print(int, char);
+void print(int var, char other);
+
+// Does not compile
+// void print(int) {}
+// void f(int var, char);
+
 void print   (int myVariable, char AnOtHeR_1_variable)    {
     int a = 5;
     int b;
