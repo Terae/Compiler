@@ -1,17 +1,27 @@
 cmake_minimum_required(VERSION 3.13)
-project(aul C)
+project(Compiler)
 
-set(CMAKE_C_STANDARD 11)
-SET(CMAKE_C_FLAGS "-lfl ${CMAKE_C_FLAGS} -Wall -Wextra")
+set(CMAKE_CXX_STANDARD 14)
 
-find_package(FLEX)
-find_package(BISON)
-flex_target(Lexer ${CMAKE_CURRENT_BINARY_DIR}/../src/compiler.l ${CMAKE_CURRENT_BINARY_DIR}/../src/lex.yy.c COMPILE_FLAGS "--header-file=${CMAKE_CURRENT_BINARY_DIR}/../src/lex.yy.h")
-bison_target(Parser ${CMAKE_CURRENT_BINARY_DIR}/../src/compiler.y ${CMAKE_CURRENT_BINARY_DIR}/../src/syntax.c COMPILE_FLAGS "-d -v")
+include_directories(src)
 
-ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
-
-set(SRC_FILES src/main.c ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS} src/Symbols.c)
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/../src)
-add_executable(Symbols ${SRC_FILES})
+add_executable(Compiler
+        cmake-build-debug/cmake_install.cmake
+        cmake-build-debug/CMakeCache.txt
+        cmake-build-debug/Compiler.cbp
+        cmake-build-debug/Makefile
+        src/compiler.l
+        src/compiler.y
+        src/lex.yy.h
+        src/main.c
+        src/Symbols.c
+        src/Symbols.h
+        src/syntax.c
+        src/syntax.h
+        CMakeLists.txt
+        input
+        input.bak
+        Makefile
+        Projet_Syst_Info_2018.pdf
+        README.md
+        y.output)

@@ -8,10 +8,10 @@ clean:
 	rm -f *.c *.h $(PROG_NAME)
 
 yacc:
-	yacc -d compiler.y -v
+	yacc -d src/compiler.y -v
 
 lex:
-	flex compiler.l
+	flex src/compiler.l
 
 build: yacc lex
 	gcc -o $(PROG_NAME) lex.yy.c y.tab.c -ll
