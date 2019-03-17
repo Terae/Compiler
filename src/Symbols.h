@@ -5,10 +5,17 @@
 #ifndef AUL_SYMBOLS_H
 #define AUL_SYMBOLS_H
 
+enum T_Type {
+    Entier,
+    Caractere
+};
+
 typedef struct Symbol {
     int addr;
     char *  name;
-    char *  type;
+    enum T_Type type;
+    /*int isConst;
+    int isInitialized;*/
     int depth;
     struct Symbol * prev;
     struct Symbol * next;
@@ -22,10 +29,12 @@ typedef struct ListSymbol{
 
 L_SYMBOL * createListSymbol();
 
-int addSymbol(L_SYMBOL * list, char * name, char * type, int depth, int addr);
+int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int addr);
 
 void freeList(L_SYMBOL ** list);
 
 int popDepth(L_SYMBOL * list, int depth);
+
+void printTable(L_SYMBOL * list);
 
 #endif //AUL_SYMBOLS_H

@@ -5,6 +5,7 @@
 #include <malloc.h>
 #include <string.h>
 #include "Symbols.h"
+#include <stdio.h>
 
 /**
  * @description Create a List
@@ -29,33 +30,32 @@ L_SYMBOL * createListSymbol(){
  * @param addr int Memory addr
  * @return -1 if nothing is inserted and 1 if insertion is ok.
  */
-int addSymbol(L_SYMBOL * list, char * name, char * type, int depth, int addr) {
+int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int addr) {
     int isInserted=-1;
     if (list!= NULL) {
-        // Can't insert a symbol of depth 3 if the max depth is actually 5
-        // This should assure order
-        if (list->tail->depth<depth){
-            S_SYMBOL *newSymbol = malloc(sizeof(S_SYMBOL));
-            if (newSymbol != NULL) {
-                newSymbol->addr = addr;
-                newSymbol->depth = depth;
-                newSymbol->name = strdup(name);
-                newSymbol->type = strdup(type);
-                newSymbol->next = NULL;
+        S_SYMBOL *newSymbol = malloc(sizeof(S_SYMBOL));
+        newSymbol->addr = addr;
+        newSymbol->depth = depth;
+        newSymbol->name=malloc(sizeof(char)*strlen(name));
+        strncpy(newSymbol->name, name, strlen(name));
+        newSymbol->type = type;
+        newSymbol->next = NULL;
 
-                if (list->tail == NULL) { // Liste vide
-                    list->head = newSymbol;
-                    list->tail = newSymbol;
-                    newSymbol->prev = NULL;
-                } else {
-                    list->tail->next = newSymbol;
-                    newSymbol->prev = list->tail;
-                    list->tail = newSymbol;
-                }
-                list->size += 1;
-                isInserted = 1;
+        if (list->tail != NULL) { // Liste vide
+            // Can't insert a symbol of depth 3 if the max depth is actually 5
+            // This should assure order
+            if (list->tail->depth < depth) {
+                list->tail->next = newSymbol;
+                newSymbol->prev = list->tail;
+                list->tail = newSymbol;
             }
+        }else{
+            list->head = newSymbol;
+            list->tail = newSymbol;
+            newSymbol->prev = NULL;
         }
+        list->size += 1;
+        isInserted = 1;
     }
     return isInserted;
 }
@@ -103,4 +103,17 @@ int popDepth(L_SYMBOL * list,int depth){
     return isPoped;
 }
 
-
+void printTable(L_SYMBOL * list){
+    if (list != NULL){
+        printf("/*********************************************************/\n");
+        printf("Size : %d \n",list->size);
+        printf("-----------------------------------------------------------\n");
+        S_SYMBOL * aux=list->head;
+        while (aux != NULL){
+            printf("Varname : %s , address : %x, Type %d , depth %d \n",aux->name,aux->addr,aux->type,aux->depth);
+            printf("-----------------------------------------------------------\n");
+            aux=aux->next;
+        }
+        printf("/*********************************************************/\n");
+    }
+}
