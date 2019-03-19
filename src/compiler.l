@@ -81,6 +81,8 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 "void"          {ECHO; return tVOID;}
 "char"          {ECHO; return tCHAR;}
 "enum"          {ECHO; return tENUM;}
+"bool"          {ECHO; return tBOOL;}
+"NULL"          {ECHO; return tNULL;}
 
 "if"            {ECHO; return tIF;}
 "else"          {ECHO; return tELSE;}
@@ -92,37 +94,65 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 "do"            {ECHO; return tDO;}
 "break"         {ECHO; return tBREAK;}
 "continue"      {ECHO; return tCONTINUE;}
+"return"        {ECHO; return tRETURN;}
+"sizeof"        {ECHO; return tSIZEOF;}
 
 "&&"            {ECHO; return tAND;}
 "||"            {ECHO; return tOR;}
 "true"          {ECHO; return tTRUE;}
 "false"         {ECHO; return tFALSE;}
 
-("{"|"<%")      {ECHO; return tACCO;}
-("}"|"%>")      {ECHO; return tACCF;}
-"("             {ECHO; return tPARO;}
-")"             {ECHO; return tPARF;}
+">>="           {ECHO; return tRIGHT_ASSIGN;}
+"<<="           {ECHO; return tLEFT_ASSIGN;}
+"+="            {ECHO; return tADD_ASSIGN;}
+"-="            {ECHO; return tSUB_ASSIGN;}
+"*="            {ECHO; return tMUL_ASSIGN;}
+"/="            {ECHO; return tDIV_ASSIGN;}
+"%="            {ECHO; return tMOD_ASSIGN;}
+"&="            {ECHO; return tAND_ASSIGN;}
+"^="            {ECHO; return tXOR_ASSIGN;}
+"|="            {ECHO; return tOR_ASSIGN;}
+
+">>"            {ECHO; return tRIGHT_OP;}
+"<<"            {ECHO; return tLEFT_OP;}
+"->"            {ECHO; return tPTR_OP;}
+
+"<="            {ECHO; return tLE;}
+">="            {ECHO; return tGE;}
+"=="            {ECHO; return tEQ;}
+"!="            {ECHO; return tNE;}
+
+("{"|"<%")      {ECHO; return '{';}
+("}"|"%>")      {ECHO; return '}';}
+"("             {ECHO; return '(';}
+")"             {ECHO; return ')';}
 [ \t]+          {ECHO;}
 [\n]            {ECHO;}
 
 "++"            {ECHO; return tINCR;}
 "--"            {ECHO; return tDECR;}
 
-"+"             {ECHO; return tPLUS;}
-"-"             {ECHO; return tMINUS;}
-"/"             {ECHO; return tDIV;}
-"*"             {ECHO; return tSTAR;}
-"%"             {ECHO; return tMOD;}
-"="             {ECHO; return tEQUAL;}
-","             {ECHO; return tCOMMA;}
-"!"             {ECHO; return tNOT;}
-";"             {ECHO; return tSEMI;}
+"+"             {ECHO; return '+';}
+"-"             {ECHO; return '-';}
+"/"             {ECHO; return '/';}
+"*"             {ECHO; return '*';}
+"%"             {ECHO; return '%';}
+"="             {ECHO; return '=';}
+","             {ECHO; return ',';}
+"!"             {ECHO; return '!';}
+";"             {ECHO; return ';';}
 
-("["|"<:")      {ECHO; return tCROO;}
-("]"|":>")      {ECHO; return tCROF;}
+("["|"<:")      {ECHO; return '[';}
+("]"|":>")      {ECHO; return ']';}
 
-"?"             {ECHO; return tQUESTION;}
-":"             {ECHO; return tCOLON;}
+"."             {ECHO; return '.';}
+"~"             {ECHO; return '~';}
+"^"             {ECHO; return '^';}
+"?"             {ECHO; return '?';}
+":"             {ECHO; return ':';}
+"."             {ECHO; return '.';}
+"<"             {ECHO; return '<';}
+">"             {ECHO; return '>';}
 
 {identifier}    {ECHO; return tID;}
 {number}        {ECHO; return tNBR;}
