@@ -4,17 +4,18 @@ int main() {
     int* c;
     const int *d;
     int **e;
-    int const f;
+    const int const* f;
     char g;
     const char h;
     const char *i;
     char **j;
     char const ***k;
     char l = 'a';
-    void l;
-    void *m;
-    char c = '£';
-    char *str = "I am a string recognized as\t\t\   \t\ta string!";
+    char m, n, o = 'o', p = 'p';
+    void q;
+    void *r;
+    char s = '$';
+    char *str = "I am a string recognized as\t\t\n  \t\ta string!";
     int bool_1 = true;
     int bool_2 = false;
     int hexa_1 = 0x00;
@@ -22,4 +23,5 @@ int main() {
     int octal = 06;
     int expo_1 = 40e10;
     int expo_2 = 1E30;
+    int null_v = NULL;
 }
