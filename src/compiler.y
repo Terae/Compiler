@@ -77,9 +77,7 @@ TypeQualifier : tCONST;
 TypeQualifierList :                   TypeQualifier
 		  | TypeQualifierList TypeQualifier;
 
-Pointer : TypeQualifierList '*' Pointer TypeQualifierList
-	| TypeQualifierList '*' 	TypeQualifierList
-	| TypeQualifierList '*' Pointer
+Pointer : TypeQualifierList '*' Pointer
         | TypeQualifierList '*'
         | '*' Pointer
         | '*';
