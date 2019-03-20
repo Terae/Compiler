@@ -1,4 +1,4 @@
-.PHONY: clean yacc lex build run all lib
+.PHONY: clean lib yacc lex build run all
 .DEFAULT_GOAL:= all
 .ONESHELL:
 
@@ -7,6 +7,8 @@ SHELL=/bin/bash
 SOURCE_DIR=src
 BUILD_DIR=build
 TEST_DIR=test
+SOURCE_FILES := Assembly.c Error.c Symbols.c
+HEADER_FILES := Assembly.h Error.h Symbols.h
 
 YACC_OUTPUT=y.tab
 LEX_OUTPUT=lex.yy.c
@@ -17,8 +19,14 @@ PROG_NAME=YaccUza.out
 
 clean:
 	rm -f $(SOURCE_DIR)/syntax.* $(BUILD_DIR)/$(LEX_OUTPUT) $(BUILD_DIR)/$(YACC_OUTPUT).* $(BUILD_DIR)/*.output $(BUILD_DIR)/$(PROG_NAME)
+	$(foreach file, $(SOURCE_FILES), rm -f $(BUILD_DIR)/$(file);)
+	$(foreach file, $(HEADER_FILES), rm -f $(BUILD_DIR)/$(file);)
 
-yacc: $(SOURCE_DIR)/compiler.y clean
+lib:
+	$(foreach file, $(SOURCE_FILES), cp $(SOURCE_DIR)/$(file) $(BUILD_DIR)/;)
+	$(foreach file, $(HEADER_FILES), cp $(SOURCE_DIR)/$(file) $(BUILD_DIR)/;)
+
+yacc: $(SOURCE_DIR)/compiler.y
 	mkdir -p $(BUILD_DIR)
 	yacc -v -d $(SOURCE_DIR)/compiler.y -o $(BUILD_DIR)/$(YACC_OUTPUT).c
 
@@ -27,14 +35,12 @@ lex: $(SOURCE_DIR)/compiler.l yacc
 	flex ../src/compiler.l
 	cd ..
 
-build: lib yacc lex
-	gcc -o $(BUILD_DIR)/$(PROG_NAME) $(BUILD_DIR)/$(LEX_OUTPUT) $(BUILD_DIR)/$(YACC_OUTPUT).c -ll -ly
+build: clean lib yacc lex
+	cd $(BUILD_DIR)
+	gcc -o $(PROG_NAME) $(LEX_OUTPUT) $(YACC_OUTPUT).c $(SOURCE_FILES) -ll -ly
 
 run: build
 	$(BUILD_DIR)/$(PROG_NAME) < $(TEST_DIR)/input
-
-lib:
-	cp $(SOURCE_DIR)/Symbols.* $(BUILD_DIR)/
 
 # Automatic testing all the syntax
 TestsNoGood:=$(shell cd $(TEST_DIR); ls impostor_C | egrep '^[0-9]+' | sort -n )

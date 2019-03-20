@@ -155,7 +155,6 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 "^"             {ECHO; return '^';}
 "?"             {ECHO; return '?';}
 ":"             {ECHO; return ':';}
-"."             {ECHO; return '.';}
 "<"             {ECHO; return '<';}
 ">"             {ECHO; return '>';}
 

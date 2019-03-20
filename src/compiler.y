@@ -1,9 +1,10 @@
 %{
-    #include <stdarg.h>
     #include <stdio.h>
+
+    #include "Assembly.h"
+    #include "Error.h"
     #include "Symbols.h"
 
-    void yyerror(const char*, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
     int yylex(void);
 
     int implementation_enabled = 1;
@@ -286,17 +287,6 @@ StatementJump : tCONTINUE End
               | tRETURN Expression End;
 
 %%
-
-void yyerror(const char* msg, ...) {
-    va_list pointer;
-
-    va_start(pointer, msg);
-    char *total;
-    vsprintf(total, msg, pointer);
-    va_end(pointer);
-
-    printf("ERROR: %s", total);
-}
 
 int main(int argc, char const **argv) {
     yyparse();
