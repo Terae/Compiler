@@ -4,7 +4,7 @@
 
     #include "y.tab.h"
 
-    void yyerror(const char*);
+    void yyerror(const char*, ...);
 
     // Replace the first `N` characters of `target` by the `size` characters of `subsitution`
     void helperStringReplace(char *target, size_t N, const char* subsitution, size_t size) {
@@ -170,7 +170,7 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
                     char *str;
                     yylval.nbr = strtol(yytext, &str, 0);
                     if(str - yytext < strlen(yytext)) {
-                        yyerror("Invalid number constant"); //: '%s'.", yytext);
+                        yyerror("Invalid number constant: %s", yytext);
                     }
                     return tNBR;
                 }
@@ -180,7 +180,7 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
                     char *str;
                     yylval.nbr = (int)strtod(yytext, &str);
                     if(str - yytext < strlen(yytext)) {
-                        yyerror("Invalid exponential number constant");
+                        yyerror("Invalid exponential number constant: %s", yytext);
                     }
                     return tNBR;
                 }
