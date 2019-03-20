@@ -62,14 +62,19 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 <LCOMMENT_MODE>"\n" {BEGIN(INITIAL);}
 <LCOMMENT_MODE>.    {}
 
-\"(\\.|[^\\"])*\"   {ECHO; const char* result = helperStringCleaner(yytext); return tSTRING_LITERAL;}
+\"(\\.|[^\\"])*\"   {
+                        ECHO;
+                        yylval.string = helperStringCleaner(yytext);
+                        return tSTRING_LITERAL;
+                    }
 
 \'(\\.|[^\\'])+\'    {
                         ECHO;
                         const char* val = helperStringCleaner(yytext);
-                        if(strlen(val) > 1) {
+                        if(strlen(val) != 1) {
                             yyerror("A char literal can only be composed by a single character.");
                         }
+                        yylval.string = val;
                         return tCHAR_LITERAL;
                     }
 
@@ -154,9 +159,31 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 "<"             {ECHO; return '<';}
 ">"             {ECHO; return '>';}
 
-{identifier}    {ECHO; return tID;}
-{number}        {ECHO; return tNBR;}
-{numberExp}     {ECHO; return tNBR;}
+{identifier}    {
+                    ECHO;
+                    yylval.string = strdup(yytext);
+                    return tID;
+                }
+
+{number}        {
+                    ECHO;
+                    char *str;
+                    yylval.nbr = strtol(yytext, &str, 0);
+                    if(str - yytext < strlen(yytext)) {
+                        yyerror("Invalid number constant"); //: '%s'.", yytext);
+                    }
+                    return tNBR;
+                }
+
+{numberExp}     {
+                    ECHO;
+                    char *str;
+                    yylval.nbr = (int)strtod(yytext, &str);
+                    if(str - yytext < strlen(yytext)) {
+                        yyerror("Invalid exponential number constant");
+                    }
+                    return tNBR;
+                }
 
 .               {/* ignore bad characters */}
 
