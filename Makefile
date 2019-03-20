@@ -1,4 +1,4 @@
-.PHONY: clean yacc lex build run all
+.PHONY: clean yacc lex build run all lib
 .DEFAULT_GOAL:= all
 .ONESHELL:
 
@@ -27,11 +27,14 @@ lex: $(SOURCE_DIR)/compiler.l yacc
 	flex ../src/compiler.l
 	cd ..
 
-build: yacc lex
-	gcc -o $(BUILD_DIR)/$(PROG_NAME) $(BUILD_DIR)/$(LEX_OUTPUT) $(BUILD_DIR)/$(YACC_OUTPUT).c -ll
+build: lib yacc lex
+	gcc -o $(BUILD_DIR)/$(PROG_NAME) $(BUILD_DIR)/$(LEX_OUTPUT) $(BUILD_DIR)/$(YACC_OUTPUT).c -ll -ly
 
 run: build
 	$(BUILD_DIR)/$(PROG_NAME) < $(TEST_DIR)/input
+
+lib:
+	cp $(SOURCE_DIR)/Symbols.* $(BUILD_DIR)/
 
 # Automatic testing all the syntax
 TestsNoGood:=$(shell cd $(TEST_DIR); ls impostor_C | egrep '^[0-9]+' | sort -n )

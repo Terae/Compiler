@@ -1,5 +1,6 @@
 %{
     #include <stdio.h>
+		#include "Symbols.h"
 
     void yyerror(const char*);
     int yylex(void);
