@@ -7,6 +7,11 @@
 #include "Symbols.h"
 #include <stdio.h>
 
+
+void free_symbol(S_SYMBOL * tofree){
+    free(tofree->name);
+    free(tofree);
+}
 /**
  * @description Create a List
  * @return L_SYMBO * list
@@ -16,7 +21,6 @@ L_SYMBOL * createListSymbol(){
     if (ret!=NULL){
         ret->size=0;
         ret->head=NULL;
-        ret->tail=NULL;
     }
     return ret;
 }
@@ -36,23 +40,15 @@ int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int add
         S_SYMBOL *newSymbol = malloc(sizeof(S_SYMBOL));
         newSymbol->addr = addr;
         newSymbol->depth = depth;
-        newSymbol->name=malloc(sizeof(char)*strlen(name));
-        strncpy(newSymbol->name, name, strlen(name));
+        newSymbol->name=strdup(name);
         newSymbol->type = type;
-        newSymbol->next = NULL;
 
-        if (list->tail != NULL) { // Liste vide
-            // Can't insert a symbol of depth 3 if the max depth is actually 5
-            // This should assure order
-            if (list->tail->depth < depth) {
-                list->tail->next = newSymbol;
-                newSymbol->prev = list->tail;
-                list->tail = newSymbol;
-            }
+        if (list->head != NULL) { // Liste vide
+            newSymbol->next=list->head;
+            list->head=newSymbol;
         }else{
+        		newSymbol->next = NULL;
             list->head = newSymbol;
-            list->tail = newSymbol;
-            newSymbol->prev = NULL;
         }
         list->size += 1;
         isInserted = 1;
@@ -60,32 +56,32 @@ int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int add
     return isInserted;
 }
 /**
- * @description Free the list
- * @param list L_SYMBOL ** list
- */
-void freeList(L_SYMBOL ** list){
-    if (*list != NULL){
-        S_SYMBOL * aux=(*list)->head;
-        while(aux != NULL){
-            S_SYMBOL * to_free=aux;
-            aux=to_free->next;
-            free(to_free);
-        }
-        free(*list),*list=NULL;
-    }
-}
-/**
  * @description Pop last element
  * @param L_SYMBOL list
  */
-void popTail(L_SYMBOL * list){
+void popHead(L_SYMBOL * list){
     if (list != NULL) {
-        S_SYMBOL * aux = list->tail;
-        list->tail=aux->prev;
-        list->tail->next=NULL;
-        free(aux);
+        if (list->head!=NULL){
+            S_SYMBOL * aux = list->head;
+            list->head=aux->next;
+            free_symbol(aux);
+            list->size-=1;
+        }
     }
 }
+/**
+ * @description Free the list
+ * @param list L_SYMBOL ** list
+ */
+void freeList(L_SYMBOL * listAddr){
+	if (listAddr != NULL){
+		while((listAddr)->head != NULL){
+			popHead(listAddr);
+		}
+		free(listAddr);
+  }
+}
+
 
 /**
  * @description Pop all Symbols at the end that matches the same depth
@@ -93,14 +89,14 @@ void popTail(L_SYMBOL * list){
  * @param depth
  * @return
  */
-int popDepth(L_SYMBOL * list,int depth){
-    int isPoped=-1;
+void popDepth(L_SYMBOL * list,int depth){
     if (list!=NULL){
-        while(list->tail->depth==depth){
-            popTail(list);
+        if (list->head!=NULL){
+            while(list->head->depth>=depth){
+                popHead(list);
+            }
         }
     }
-    return isPoped;
 }
 
 void printTable(L_SYMBOL * list){
@@ -114,6 +110,6 @@ void printTable(L_SYMBOL * list){
             printf("-----------------------------------------------------------\n");
             aux=aux->next;
         }
-        printf("/*********************************************************/\n");
+        printf("/*********************************************************/\n\n");
     }
 }

@@ -17,24 +17,24 @@ typedef struct Symbol {
     /*int isConst;
     int isInitialized;*/
     int depth;
-    struct Symbol * prev;
     struct Symbol * next;
 } S_SYMBOL;
 
 typedef struct ListSymbol{
     unsigned int size;
     S_SYMBOL * head;
-    S_SYMBOL * tail;
 } L_SYMBOL;
 
 L_SYMBOL * createListSymbol();
 
 int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int addr);
 
-void freeList(L_SYMBOL ** list);
+void freeList(L_SYMBOL * list);
 
-int popDepth(L_SYMBOL * list, int depth);
+void popDepth(L_SYMBOL * list, int depth);
 
 void printTable(L_SYMBOL * list);
+
+void popDepth(L_SYMBOL * list,int depth);
 
 #endif //AUL_SYMBOLS_H
