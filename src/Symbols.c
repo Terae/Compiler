@@ -8,6 +8,20 @@
 #include <stdio.h>
 
 
+int getSymbolAddr(L_SYMBOL * list, char * name){
+	int found=-1;
+	if (list != NULL){
+		S_SYMBOL * aux = list->head;
+		while (aux != NULL && found == -1){
+			if (strcmp(name,aux->name) == 0){
+				found=aux->addr;
+			}
+			aux=aux->next;
+		}
+	}	
+	return found;
+}
+
 void free_symbol(S_SYMBOL * tofree){
     free(tofree->name);
     free(tofree);
@@ -32,7 +46,7 @@ L_SYMBOL * createListSymbol(){
  * @param type Char * Variable's type
  * @param depth int Depth
  * @param addr int Memory addr
- * @return -1 if nothing is inserted and 1 if insertion is ok.
+ * @return -1 if nothing is inserted and 0 if insertion is ok.
  */
 int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int addr) {
     int isInserted=-1;
@@ -51,7 +65,7 @@ int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int add
             list->head = newSymbol;
         }
         list->size += 1;
-        isInserted = 1;
+        isInserted = 0;
     }
     return isInserted;
 }

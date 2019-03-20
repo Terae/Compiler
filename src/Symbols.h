@@ -35,6 +35,6 @@ void popDepth(L_SYMBOL * list, int depth);
 
 void printTable(L_SYMBOL * list);
 
-void popDepth(L_SYMBOL * list,int depth);
+int getSymbolAddr(L_SYMBOL * list, char * name);
 
 #endif //AUL_SYMBOLS_H
