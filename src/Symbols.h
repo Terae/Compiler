@@ -6,8 +6,8 @@
 #define AUL_SYMBOLS_H
 
 enum T_Type {
-    Entier,
-    Caractere
+    Entier = 4,
+    Caractere = 1
 };
 
 typedef struct Symbol {
@@ -31,7 +31,7 @@ int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int add
 
 void freeList(L_SYMBOL * list);
 
-void popDepth(L_SYMBOL * list, int depth);
+int popDepth(L_SYMBOL * list, int depth);
 
 void printTable(L_SYMBOL * list);
 
