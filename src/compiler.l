@@ -70,7 +70,7 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 
 \'(\\.|[^\\'])+\'    {
                         ECHO;
-                        const char* val = helperStringCleaner(yytext);
+                        char* val = helperStringCleaner(yytext);
                         if(strlen(val) != 1) {
                             yyerror("A char literal can only be composed by a single character.");
                         }

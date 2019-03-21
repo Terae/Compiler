@@ -7,12 +7,20 @@
 
     int yylex(void);
 
+		L_SYMBOL * TabSymbol;
+		int depth=0;
+		int stackBase=4000;
     int implementation_enabled = 1;
+
+		void initSymbolTab(){
+			TabSymbol=createListSymbol();
+		}
+
 %}
 
 %union{
     int nbr;
-    char const* string;
+    char * string;
 }
 
 %token <nbr>    tNBR
@@ -101,12 +109,12 @@ FinalType :                   TypeSpecifier
 TypedDeclarationAssignmentNext : End
                                | ',' TypedDeclarationAssignment;
 
-TypedDeclarationAssignment : tID '=' ExpressionAssignment TypedDeclarationAssignmentNext;
+TypedDeclarationAssignment : tID  {addSymbol(TabSymbol,$1,Entier,depth,4000);printTable(TabSymbol);} '=' ExpressionAssignment TypedDeclarationAssignmentNext;
 
 TypedDeclarationNext : End
                      | ',' TypedDeclaration;
-
-TypedDeclaration : tID TypedDeclarationNext
+// Non-affected declaration : int a,b;
+TypedDeclaration : tID {addSymbol(TabSymbol,$1,Entier,depth,4000);printTable(TabSymbol);} TypedDeclarationNext
                  | TypedDeclarationAssignment;
 
 Declaration : FinalType TypedDeclaration;
@@ -140,7 +148,7 @@ ExpressionPrimary : tID
                   | '(' Expression ')';
 
 ExpressionPostfix : ExpressionPrimary
-                  | ExpressionPostfix '{' Expression '}'
+                  | ExpressionPostfix '{' {depth+=1;} Expression '}' {popDepth(TabSymbol,depth);depth-=1;}
                   | ExpressionPostfix '(' ')'
                   | ExpressionPostfix '(' ArgumentExpressionList ')'
                   | ExpressionPostfix '.' tID
@@ -252,11 +260,11 @@ StatementLabeled : tID ':' Statement
                  | tCASE ExpressionConstant ':' Statement
                  | tDEFAULT ':' Statement;
 
-FunctionStatementCompound : '{' { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } } '}'
-                          | '{' { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } } BlockItemList '}';
+FunctionStatementCompound : '{' {depth+=1;} { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } }               '}' {popDepth(TabSymbol,depth);depth-=1;}
+                          | '{' {depth+=1;} { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } } BlockItemList '}' {popDepth(TabSymbol,depth);depth-=1;};
 
-StatementCompound : '{'               '}'
-                  | '{' BlockItemList '}';
+StatementCompound : '{'{depth+=1;}               '}' {popDepth(TabSymbol,depth);depth-=1;}
+                  | '{'{depth+=1;} BlockItemList '}' {popDepth(TabSymbol,depth);depth-=1;};
 
 BlockItemList : BlockItem
               | BlockItemList BlockItem;
@@ -289,7 +297,9 @@ StatementJump : tCONTINUE End
 %%
 
 int main(int argc, char const **argv) {
+		initSymbolTab();
     yyparse();
 
+		freeList(TabSymbol);
     return 0;
 }

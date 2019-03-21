@@ -104,13 +104,16 @@ void freeList(L_SYMBOL * listAddr){
  * @return
  */
 void popDepth(L_SYMBOL * list,int depth){
-    if (list!=NULL){
-        if (list->head!=NULL){
-            while(list->head->depth>=depth){
-                popHead(list);
-            }
-        }
-    }
+  if (list!=NULL){
+  	if (list->head!=NULL){
+    	while(list->head->depth>=depth){
+      	popHead(list);
+				if (list->head == NULL){
+					break;
+				}
+    	}
+  	}
+	}
 }
 
 void printTable(L_SYMBOL * list){

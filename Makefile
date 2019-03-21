@@ -52,4 +52,4 @@ test: build
 
 all: build run
 
-$(V).SILENT:
+#$(V).SILENT:
