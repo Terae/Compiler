@@ -6,8 +6,9 @@
 #define AUL_SYMBOLS_H
 
 enum T_Type {
-    Entier = 4,
-    Caractere = 1
+	Integer=4,
+	Character=1,
+	Error=0
 };
 
 typedef struct Symbol {

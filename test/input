@@ -17,6 +17,7 @@ void print   (int myVariable, char AnOtHeR_1_variable)    {
 
     while (false) {
         char c = 8;
+				int dd=5;
     }
 
     printf(5);

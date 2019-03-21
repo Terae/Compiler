@@ -1,21 +1,37 @@
 %{
-    #include <stdio.h>
+		#include <stdio.h>
 
     #include "Assembly.h"
     #include "Error.h"
     #include "Symbols.h"
 
     int yylex(void);
+    
+		int implementation_enabled = 1;
 
+
+		/** Symbols **/
+		// Global vars
 		L_SYMBOL * TabSymbol;
 		int depth=0;
-		int stackBase=4000;
-    int implementation_enabled = 1;
-
+		int ESP=4000;
+		enum T_Type type_var;
+		
+		/** Symbols **/
+		// functions
 		void initSymbolTab(){
 			TabSymbol=createListSymbol();
 		}
-
+		void addVar(char * name){
+			int ret=addSymbol(TabSymbol,name,type_var,depth,ESP);
+			if (ret==-1){
+				warning("ERROR: Variable name already taken");
+				exit(FAILURE_COMPILATION);
+			}else{
+				ESP+=(int)type_var;
+				printTable(TabSymbol);
+			}
+		}
 %}
 
 %union{
@@ -86,9 +102,9 @@ ExternalDeclaration : FunctionDefinition
 FunctionDefinition : FinalType tID '(' Params ')' FunctionStatementCompound
                    | FinalType tID '(' Params ')' End;
 
-TypeSpecifier : tINT
+TypeSpecifier : tINT {type_var=Integer;}
               | tVOID
-              | tCHAR
+              | tCHAR {type_var=Character;}
               | tBOOL;
 
 TypeQualifier : tCONST;
@@ -109,12 +125,12 @@ FinalType :                   TypeSpecifier
 TypedDeclarationAssignmentNext : End
                                | ',' TypedDeclarationAssignment;
 
-TypedDeclarationAssignment : tID  {addSymbol(TabSymbol,$1,Entier,depth,4000);printTable(TabSymbol);} '=' ExpressionAssignment TypedDeclarationAssignmentNext;
+TypedDeclarationAssignment : tID  {addVar($1);} '=' ExpressionAssignment TypedDeclarationAssignmentNext;
 
 TypedDeclarationNext : End
                      | ',' TypedDeclaration;
 // Non-affected declaration : int a,b;
-TypedDeclaration : tID {addSymbol(TabSymbol,$1,Entier,depth,4000);printTable(TabSymbol);} TypedDeclarationNext
+TypedDeclaration : tID {addVar($1);} TypedDeclarationNext
                  | TypedDeclarationAssignment;
 
 Declaration : FinalType TypedDeclaration;
@@ -148,7 +164,7 @@ ExpressionPrimary : tID
                   | '(' Expression ')';
 
 ExpressionPostfix : ExpressionPrimary
-                  | ExpressionPostfix '{' {depth+=1;} Expression '}' {popDepth(TabSymbol,depth);depth-=1;}
+                  | ExpressionPostfix '{' {depth+=1;} Expression '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;}
                   | ExpressionPostfix '(' ')'
                   | ExpressionPostfix '(' ArgumentExpressionList ')'
                   | ExpressionPostfix '.' tID
@@ -260,11 +276,11 @@ StatementLabeled : tID ':' Statement
                  | tCASE ExpressionConstant ':' Statement
                  | tDEFAULT ':' Statement;
 
-FunctionStatementCompound : '{' {depth+=1;} { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } }               '}' {popDepth(TabSymbol,depth);depth-=1;}
-                          | '{' {depth+=1;} { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } } BlockItemList '}' {popDepth(TabSymbol,depth);depth-=1;};
+FunctionStatementCompound : '{' {depth+=1;} { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } }               '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;}
+                          | '{' {depth+=1;} { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } } BlockItemList '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;};
 
-StatementCompound : '{'{depth+=1;}               '}' {popDepth(TabSymbol,depth);depth-=1;}
-                  | '{'{depth+=1;} BlockItemList '}' {popDepth(TabSymbol,depth);depth-=1;};
+StatementCompound : '{'{depth+=1;}               '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;}
+                  | '{'{depth+=1;} BlockItemList '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;};
 
 BlockItemList : BlockItem
               | BlockItemList BlockItem;
@@ -299,7 +315,7 @@ StatementJump : tCONTINUE End
 int main(int argc, char const **argv) {
 		initSymbolTab();
     yyparse();
-
+		
 		freeList(TabSymbol);
     return 0;
 }

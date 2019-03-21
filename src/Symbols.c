@@ -51,22 +51,32 @@ L_SYMBOL * createListSymbol() {
 int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int addr) {
   int isInserted = -1;
   if (list != NULL) {
-    S_SYMBOL *newSymbol = malloc(sizeof(S_SYMBOL));
-    newSymbol->addr = addr;
-    newSymbol->depth = depth;
-    newSymbol->name = strdup(name);
-    newSymbol->type = type;
-
-    if (list->head != NULL) { // Liste vide
-      newSymbol->next = list->head;
-      list->head = newSymbol;
-    } else {
-      newSymbol->next = NULL;
-      list->head = newSymbol;
-    }
-    list->size += 1;
-    isInserted = 0;
-  }
+		S_SYMBOL * aux=list->head;
+		int alreadyIn=1;
+		while (aux != NULL && alreadyIn==1){
+			if (strcmp(aux->name,name)==0){
+				alreadyIn=0;
+			}
+			aux=aux->next;
+		}
+		if (alreadyIn==1){
+	    S_SYMBOL *newSymbol = malloc(sizeof(S_SYMBOL));
+  	  newSymbol->addr = addr;
+	    newSymbol->depth = depth;
+  	  newSymbol->name = strdup(name);
+    	newSymbol->type = type;
+	
+  	  if (list->head != NULL) { // Liste vide
+	      newSymbol->next = list->head;
+  	    list->head = newSymbol;
+	    } else {
+  	    newSymbol->next = NULL;
+    	  list->head = newSymbol;
+	    }
+  	  list->size += 1;
+	    isInserted = 0;
+  	}
+	}
   return isInserted;
 }
 
@@ -124,12 +134,12 @@ int popDepth(L_SYMBOL * list,int depth) {
 
 void printTable(L_SYMBOL * list) {
   if (list != NULL) {
-    printf("/*********************************************************/\n");
+    printf("\n/*********************************************************/\n");
     printf("Size : %d \n", list->size);
     printf("-----------------------------------------------------------\n");
     S_SYMBOL *aux = list->head;
     while (aux != NULL) {
-      printf("Varname : %s , address : %x, Type %d , depth %d \n", aux->name, aux->addr, aux->type, aux->depth);
+      printf("Varname : %s , address : %d, Type %d , depth %d \n", aux->name, aux->addr, aux->type, aux->depth);
       printf("-----------------------------------------------------------\n");
       aux = aux->next;
     }
