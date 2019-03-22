@@ -22,3 +22,7 @@ void initAssemblyOutput(const char *path) {
 void closeAssemblyOutput(const char *path) {
     fclose(output);
 }
+
+void exportAssembly(const char *line, ...) {
+
+}
