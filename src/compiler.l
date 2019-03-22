@@ -6,6 +6,8 @@
 
     void yyerror(const char*, ...);
 
+    int count_line = 1;
+
     // Replace the first `N` characters of `target` by the `size` characters of `subsitution`
     void helperStringReplace(char *target, size_t N, const char* subsitution, size_t size) {
         if(size == 0) {
@@ -57,9 +59,11 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 
 "/*"                {BEGIN(COMMENT_MODE);}
 <COMMENT_MODE>"*/"  {BEGIN(INITIAL);}
+<COMMENT_MODE>"\n"  {++count_line;}
 <COMMENT_MODE>.     {}
+
 "//"                {BEGIN(LCOMMENT_MODE);}
-<LCOMMENT_MODE>"\n" {BEGIN(INITIAL);}
+<LCOMMENT_MODE>"\n" {BEGIN(INITIAL); ++count_line;}
 <LCOMMENT_MODE>.    {}
 
 \"(\\.|[^\\"])*\"   {
@@ -132,7 +136,7 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 "("             {ECHO; return '(';}
 ")"             {ECHO; return ')';}
 [ \t]+          {ECHO;}
-[\n]            {ECHO;}
+\n              {ECHO; ++count_line;}
 
 "++"            {ECHO; return tINCR;}
 "--"            {ECHO; return tDECR;}

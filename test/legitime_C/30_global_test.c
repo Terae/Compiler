@@ -46,13 +46,15 @@ int **f3(int var, const char value) {
             printf("Hello World\n");
 
         default:
-            int *ptr;
-            printf("Inside the default case.\n");
-            break;
+            {
+                int *ptr;
+                printf("Inside the default case.\n");
+                break;
+            }
     }
 
     int ret = 8;
-    return &&ret;
+    return &ret;
 }
 
 int main(int argc, char **argv) {

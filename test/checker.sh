@@ -14,8 +14,7 @@ program="$1"
 file="$2"
 # 1 if the test should pass when the program parses, 0 otherwise
 checker="$3"
-
-result=$("${program}" < "${file}" | egrep "ERROR")
+result=$("${program}" < "${file}" 2>&1 | egrep "ERROR")
 if ([ "${result}" = "" ] && [ "${checker}" = "1" ]) || ([ "${result}" != "" ] && [ "${checker}" = "0" ]); then
     echo -e "${file} ${Green}PASSES${End}"
 else

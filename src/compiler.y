@@ -5,8 +5,10 @@
     #include "Error.h"
     #include "Symbols.h"
 
+    extern int const count_line;
+
     int yylex(void);
-    
+
 		int implementation_enabled = 1;
 
 
@@ -16,7 +18,7 @@
 		int depth=0;
 		int ESP=4000;
 		enum T_Type type_var;
-		
+
 		/** Symbols **/
 		// functions
 		void initSymbolTab(){
@@ -25,8 +27,7 @@
 		void addVar(char * name){
 			int ret=addSymbol(TabSymbol,name,type_var,depth,ESP);
 			if (ret==-1){
-				warning("ERROR: Variable name already taken");
-				exit(FAILURE_COMPILATION);
+				yyerror("ERROR: Variable name already taken: %s", name);
 			}else{
 				ESP+=(int)type_var;
 				printTable(TabSymbol);

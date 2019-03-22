@@ -7,6 +7,7 @@ SHELL=/bin/bash
 SOURCE_DIR=src
 BUILD_DIR=build
 TEST_DIR=test
+CHECKER=$(TEST_DIR)/checker.sh
 SOURCE_FILES := Assembly.c Error.c Symbols.c
 HEADER_FILES := Assembly.h Error.h Symbols.h
 
@@ -44,11 +45,11 @@ run: build
 
 # Automatic testing all the syntax
 TestsNoGood:=$(shell cd $(TEST_DIR); ls impostor_C | egrep '^[0-9]+' | sort -n )
-TestsGood:=$(shell cd $(TEST_DIR); ls legitime_C | egrep '^[0-9]+' | sort -n )
+TestsGood  :=$(shell cd $(TEST_DIR); ls legitime_C | egrep '^[0-9]+' | sort -n )
 test: build
-	$(foreach file, $(TestsNoGood), $(SHELL) $(TEST_DIR)/checker.sh $(BUILD_DIR)/$(PROG_NAME) $(TEST_DIR)/impostor_C/$(file) 0; )
+	$(foreach file, $(TestsNoGood), $(SHELL) $(CHECKER) $(BUILD_DIR)/$(PROG_NAME) $(TEST_DIR)/impostor_C/$(file) 0; )
 	echo ""
-	$(foreach file, $(TestsGood), $(SHELL) $(TEST_DIR)/checker.sh $(BUILD_DIR)/$(PROG_NAME) $(TEST_DIR)/legitime_C/$(file) 1; )
+	$(foreach file, $(TestsGood),   $(SHELL) $(CHECKER) $(BUILD_DIR)/$(PROG_NAME) $(TEST_DIR)/legitime_C/$(file) 1; )
 
 all: build run
 
