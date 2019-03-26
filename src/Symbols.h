@@ -42,4 +42,5 @@ int getAddrByName(L_SYMBOL * list, char * name);
 
 int getAddrByIndex(L_SYMBOL * list, int index);
 
+int IsAlreadyIn(L_SYMBOL * list, char * name);
 #endif //AUL_SYMBOLS_H

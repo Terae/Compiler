@@ -12,9 +12,11 @@ int getAddrByName(L_SYMBOL * list, char * name) {
   if (list != NULL) {
     S_SYMBOL *aux = list->head;
     while (aux != NULL && found == -1) {
-      if (strcmp(name, aux->name) == 0) {
-        found = aux->addr;
-      }
+			if (strcmp(aux->name,"")!= 0){
+	      if (strcmp(name, aux->name) == 0) {
+  	      found = aux->addr;
+    	  }
+			}
       aux = aux->next;
     }
   }
@@ -35,6 +37,22 @@ int getAddrByIndex(L_SYMBOL * list,int index){
 	return found;
 }
 
+int IsAlreadyIn(L_SYMBOL * list, char * name){
+	int found = -1;
+  if (list != NULL) {
+    S_SYMBOL *aux = list->head;
+    while (aux != NULL && found == -1) {
+			if (strcmp(aux->name,"")!= 0){
+	      if (strcmp(name, aux->name) == 0) {
+  	      found = 0;
+    	  }
+			}
+      aux = aux->next;
+    }
+  }
+  return found;
+}
+
 void free_symbol(S_SYMBOL * tofree) {
   free(tofree->name);
   free(tofree);
@@ -42,7 +60,7 @@ void free_symbol(S_SYMBOL * tofree) {
 
 /**
  * @description Create a List
- * @return L_SYMBO * list
+ * @return L_SYMBOL * list
  */
 L_SYMBOL * createListSymbol() {
   L_SYMBOL *ret = malloc(sizeof(L_SYMBOL));
@@ -68,8 +86,10 @@ int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int add
 		S_SYMBOL * aux=list->head;
 		int alreadyIn=1;
 		while (aux != NULL && alreadyIn==1){
-			if (strcmp(aux->name,name)==0){
-				alreadyIn=0;
+			if (strcmp(aux->name,"")!= 0){
+				if (strcmp(aux->name,name)==0){
+					alreadyIn=0;
+				}
 			}
 			aux=aux->next;
 		}

@@ -154,14 +154,14 @@ Params :                   { implementation_enabled = 1; }
        | ParamsNamedList   { implementation_enabled = 1; }
        | ParamsUnnamedList { implementation_enabled = 0; };
 
-Constant : tNBR
+Constant : tNBR {$1=addVar("");}
          | tCHAR_LITERAL
          | tSTRING_LITERAL
          | tTRUE
          | tFALSE
          | tNULL;
 
-ExpressionPrimary : tID
+ExpressionPrimary : tID {$1=addVar("");}
                   | Constant
                   | '(' Expression ')';
 
