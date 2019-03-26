@@ -24,7 +24,7 @@
 		void initSymbolTab(){
 			TabSymbol=createListSymbol();
 		}
-		void addVar(char * name){
+		int addVar(char * name){
 			int ret=addSymbol(TabSymbol,name,type_var,depth,ESP);
 			if (ret==-1){
 				yyerror("ERROR: Variable name already taken: %s", name);
@@ -32,6 +32,7 @@
 				ESP+=(int)type_var;
 				printTable(TabSymbol);
 			}
+			return ret;
 		}
 %}
 

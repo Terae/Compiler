@@ -12,6 +12,7 @@ enum T_Type {
 };
 
 typedef struct Symbol {
+		int index;
     int addr;
     char *  name;
     enum T_Type type;
@@ -22,8 +23,9 @@ typedef struct Symbol {
 } S_SYMBOL;
 
 typedef struct ListSymbol{
-    unsigned int size;
-    S_SYMBOL * head;
+  unsigned int size;
+  S_SYMBOL * head;
+	unsigned int lastIndex;
 } L_SYMBOL;
 
 L_SYMBOL * createListSymbol();
@@ -36,6 +38,8 @@ int popDepth(L_SYMBOL * list, int depth);
 
 void printTable(L_SYMBOL * list);
 
-int getSymbolAddr(L_SYMBOL * list, char * name);
+int getAddrByName(L_SYMBOL * list, char * name);
+
+int getAddrByIndex(L_SYMBOL * list, int index);
 
 #endif //AUL_SYMBOLS_H

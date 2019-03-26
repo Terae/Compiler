@@ -7,7 +7,7 @@
 #include "Symbols.h"
 #include <stdio.h>
 
-int getSymbolAddr(L_SYMBOL * list, char * name) {
+int getAddrByName(L_SYMBOL * list, char * name) {
   int found = -1;
   if (list != NULL) {
     S_SYMBOL *aux = list->head;
@@ -19,6 +19,20 @@ int getSymbolAddr(L_SYMBOL * list, char * name) {
     }
   }
   return found;
+}
+
+int getAddrByIndex(L_SYMBOL * list,int index){
+  int found = -1;
+  if (list != NULL) {
+    S_SYMBOL *aux = list->head;
+    while (aux != NULL && found == -1) {
+      if (index == aux->index) {
+        found = aux->addr;
+      }
+      aux = aux->next;
+    }
+  }
+	return found;
 }
 
 void free_symbol(S_SYMBOL * tofree) {
@@ -61,6 +75,7 @@ int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int add
 		}
 		if (alreadyIn==1){
 	    S_SYMBOL *newSymbol = malloc(sizeof(S_SYMBOL));
+			newSymbol->index=list->size;
   	  newSymbol->addr = addr;
 	    newSymbol->depth = depth;
   	  newSymbol->name = strdup(name);
@@ -73,8 +88,8 @@ int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int add
   	    newSymbol->next = NULL;
     	  list->head = newSymbol;
 	    }
+	    isInserted = list->size;
   	  list->size += 1;
-	    isInserted = 0;
   	}
 	}
   return isInserted;
@@ -139,7 +154,7 @@ void printTable(L_SYMBOL * list) {
     printf("-----------------------------------------------------------\n");
     S_SYMBOL *aux = list->head;
     while (aux != NULL) {
-      printf("Varname : %s , address : %d, Type %d , depth %d \n", aux->name, aux->addr, aux->type, aux->depth);
+      printf("Index : %d , varname : %s , address : %d, Type %d , depth %d \n", aux->index,aux->name, aux->addr, aux->type, aux->depth);
       printf("-----------------------------------------------------------\n");
       aux = aux->next;
     }
