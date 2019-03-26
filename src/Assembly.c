@@ -63,3 +63,13 @@ void writeAssembly(const char *line, ...) {
 void exportAssembly(const char *line, ...) {
 
 }
+
+void arithmeticOperation(const char *op, L_SYMBOL *TabSymbol) {
+    int lastIndex = TabSymbol->size - 1;
+    int addrLeft = getAddrByIndex(TabSymbol, lastIndex - 1);
+    int addrRight = getAddrByIndex(TabSymbol, lastIndex);
+    writeAssembly(LOAD" %s, %d", r0, addrLeft);
+    writeAssembly(LOAD" %s, %d", r1, addrRight);
+    writeAssembly("%s %s, %s", op, r0, r1);
+    writeAssembly(STORE" %d %s", addrLeft, r0);
+}

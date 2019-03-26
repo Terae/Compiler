@@ -177,14 +177,52 @@ ExpressionPostfix : ExpressionPrimary
                   | ExpressionPostfix '.' tID
                   | ExpressionPostfix tPTR_OP tID
                   | ExpressionPostfix tINCR
-                  | ExpressionPostfix tDECR;
+                  	{
+                        	int index=addVar("");
+                                int address = getAddrByIndex(TabSymbol, index);
+                                writeAssembly(AFC" r0 %d", 1);
+                                writeAssembly(STORE" %d r0", address);
+
+                                arithmeticOperation(ADD, TabSymbol);
+                                ESP-=popHead(TabSymbol);
+                        }
+                  | ExpressionPostfix tDECR
+                  	{
+                        	int index=addVar("");
+                                int address = getAddrByIndex(TabSymbol, index);
+                                writeAssembly(AFC" r0 %d", 1);
+                                writeAssembly(STORE" %d r0", address);
+
+                                arithmeticOperation(SOU, TabSymbol);
+                                ESP-=popHead(TabSymbol);
+                        };
 
 ArgumentExpressionList :                            ExpressionAssignment
                        | ArgumentExpressionList ',' ExpressionAssignment;
 
 ExpressionUnary : ExpressionPostfix
                 | tINCR   ExpressionUnary
+                	{
+                		int index=addVar("");
+                		int address = getAddrByIndex(TabSymbol, index);
+                		writeAssembly(AFC" r0 %d", 1);
+                                writeAssembly(STORE" %d r0", address);
+
+                                arithmeticOperation(ADD, TabSymbol);
+                                ESP-=popHead(TabSymbol);
+                	}
                 | tDECR   ExpressionUnary
+                {
+                	{
+                		int index=addVar("");
+                		int address = getAddrByIndex(TabSymbol, index);
+                		writeAssembly(AFC" r0 %d", 1);
+                		writeAssembly(STORE" %d r0", address);
+
+                		arithmeticOperation(SOU, TabSymbol);
+				ESP-=popHead(TabSymbol);
+                	}
+                }
                 | tSIZEOF ExpressionUnary
                 | UnaryOperator ExpressionCast;
 
@@ -201,23 +239,30 @@ ExpressionCast : ExpressionUnary;
 // Multiplicative operators ('*', '/', '%')
 ExpressionMultiplicative :                              ExpressionUnary
                          | ExpressionMultiplicative '*' ExpressionUnary
+                         	{
+                                	arithmeticOperation(MUL, TabSymbol);
+                                        ESP-=popHead(TabSymbol);
+                                }
                          | ExpressionMultiplicative '/' ExpressionUnary
+                         	{
+                                	arithmeticOperation(DIV, TabSymbol);
+                                	ESP-=popHead(TabSymbol);
+                                }
                          | ExpressionMultiplicative '%' ExpressionUnary;
 
 // Additive operators ('+', '-')
 ExpressionAdditive :                        ExpressionMultiplicative
                    | ExpressionAdditive '+' ExpressionMultiplicative
-                   {
-                   	int lastIndex = TabSymbol->size - 1;
-                   	int addrLeft = getAddrByIndex(TabSymbol, lastIndex - 1);
-                   	int addrRight = getAddrByIndex(TabSymbol, lastIndex);
-                   	writeAssembly(LOAD" %s, %d", r0, addrLeft);
-                   	writeAssembly(LOAD" %s, %d", r1, addrRight);
-                   	writeAssembly(ADD" %s, %s", r0, r1);
-                   	ESP-=popHead(TabSymbol);
-                   	writeAssembly(STORE" %d %s", addrLeft, r0);
-                   }
-                   | ExpressionAdditive '-' ExpressionMultiplicative;
+                   	{
+                   		arithmeticOperation(ADD, TabSymbol);
+                   		ESP-=popHead(TabSymbol);
+                   	}
+                   | ExpressionAdditive '-' ExpressionMultiplicative
+                   	{
+                   		arithmeticOperation(SOU, TabSymbol);
+                   		ESP-=popHead(TabSymbol);
+                   	}
+                   ;
 
 // Shift operators ('<<', '>>')
 ExpressionShift :                           ExpressionAdditive

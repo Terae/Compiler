@@ -5,6 +5,8 @@
 #ifndef COMPILER_ASSEMBLY_H
 #define COMPILER_ASSEMBLY_H
 
+#include "Symbols.h"
+
 #define TEXT_ASSEMBLY
 
 #if defined(TEXT_ASSEMBLY)
@@ -60,5 +62,7 @@ void closeAssemblyOutput(char const *path);
 void writeAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 
 void exportAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
+
+void arithmeticOperation(const char *op, L_SYMBOL *TabSymbol);
 
 #endif //COMPILER_ASSEMBLY_H
