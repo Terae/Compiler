@@ -167,6 +167,22 @@ int popDepth(L_SYMBOL * list,int depth) {
   return sizePoped;
 }
 
+/**
+ * @description Pop all temporary Symbols at the end
+ * @param list
+ * @param depth
+ * @return
+ */
+int popTmp(L_SYMBOL * list) {
+  int tmpPoped = 0;
+  if (list != NULL) {
+    while(list->head != NULL && !strcmp(list->head->name, "")) {
+      tmpPoped += popHead(list);
+    }
+  }
+  return tmpPoped;
+}
+
 void printTable(L_SYMBOL * list) {
   if (list != NULL) {
     printf("\n/*********************************************************/\n");

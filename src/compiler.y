@@ -93,7 +93,7 @@
 
 %%
 
-End : ';';
+End : ';' {ESP-=popTmp(TabSymbol);};
 
 Program :         ExternalDeclaration
         | Program ExternalDeclaration;
@@ -154,7 +154,12 @@ Params :                   { implementation_enabled = 1; }
        | ParamsNamedList   { implementation_enabled = 1; }
        | ParamsUnnamedList { implementation_enabled = 0; };
 
-Constant : tNBR {$1=addVar("");}
+Constant : tNBR {
+			int index=addVar("");
+		 	int address = getAddrByIndex(TabSymbol, index);
+		 	writeAssembly(AFC" r0 %d", $1);
+			writeAssembly(STORE" %d r0", address);
+		}
          | tCHAR_LITERAL
          | tSTRING_LITERAL
          | tTRUE
@@ -202,6 +207,16 @@ ExpressionMultiplicative :                              ExpressionUnary
 // Additive operators ('+', '-')
 ExpressionAdditive :                        ExpressionMultiplicative
                    | ExpressionAdditive '+' ExpressionMultiplicative
+                   {
+                   	int lastIndex = TabSymbol->size - 1;
+                   	int addrLeft = getAddrByIndex(TabSymbol, lastIndex - 1);
+                   	int addrRight = getAddrByIndex(TabSymbol, lastIndex);
+                   	writeAssembly(LOAD" %s, %d", r0, addrLeft);
+                   	writeAssembly(LOAD" %s, %d", r1, addrRight);
+                   	writeAssembly(ADD" %s, %s", r0, r1);
+                   	ESP-=popHead(TabSymbol);
+                   	writeAssembly(STORE" %d %s", addrLeft, r0);
+                   }
                    | ExpressionAdditive '-' ExpressionMultiplicative;
 
 // Shift operators ('<<', '>>')
@@ -315,9 +330,22 @@ StatementJump : tCONTINUE End
 %%
 
 int main(int argc, char const **argv) {
-		initSymbolTab();
+    initSymbolTab();
+    char *outputPath = strdup("a.s");
+    initAssemblyOutput(outputPath);
+
     yyparse();
-		
-		freeList(TabSymbol);
+
+
+    closeAssemblyOutput(outputPath);
+    free(outputPath);
+
+    freeList(TabSymbol);
+
+    if(errorsOccured() > 0) {
+    	vfprintf(stderr, "%d errors occured during compilation whicph is aborted.", errorsOccured());
+    	return FAILURE_COMPILATION;
+    }
+
     return 0;
 }

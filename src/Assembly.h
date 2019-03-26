@@ -51,8 +51,13 @@
 
 #endif
 
+#define r0 "r0"
+#define r1 "r1"
+
 void initAssemblyOutput(const char *path);
 void closeAssemblyOutput(char const *path);
+
+void writeAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 
 void exportAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 

@@ -25,7 +25,6 @@ typedef struct Symbol {
 typedef struct ListSymbol{
   unsigned int size;
   S_SYMBOL * head;
-	unsigned int lastIndex;
 } L_SYMBOL;
 
 L_SYMBOL * createListSymbol();
@@ -34,7 +33,11 @@ int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int add
 
 void freeList(L_SYMBOL * list);
 
+int popHead(L_SYMBOL * list);
+
 int popDepth(L_SYMBOL * list, int depth);
+
+int popTmp(L_SYMBOL * list);
 
 void printTable(L_SYMBOL * list);
 
@@ -43,4 +46,5 @@ int getAddrByName(L_SYMBOL * list, char * name);
 int getAddrByIndex(L_SYMBOL * list, int index);
 
 int IsAlreadyIn(L_SYMBOL * list, char * name);
+
 #endif //AUL_SYMBOLS_H

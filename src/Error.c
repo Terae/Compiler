@@ -4,7 +4,6 @@
 
 #include "Error.h"
 
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -38,4 +37,8 @@ void warning(const char* msg, ...) {
     vfprintf(stderr, msg, args);
     fputc('\n', stderr);
     va_end(args);
+}
+
+int errorsOccured() {
+    return count_error;
 }
