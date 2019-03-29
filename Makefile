@@ -52,7 +52,7 @@ test: build
 	$(foreach file, $(TestsGood),   $(SHELL) $(CHECKER) $(BUILD_DIR)/$(PROG_NAME) $(TEST_DIR)/legitime_C/$(file) 1; )
 
 interpreter: $(SOURCE_DIR)/Interpreter.c
-	gcc -g $(SOURCE_DIR)/Interpreter.c -o interpreter.out
+	gcc -g $(SOURCE_DIR)/Interpreter.c -o $(BUILD_DIR)/interpreter.out
 
 all: build run
 

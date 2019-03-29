@@ -169,3 +169,4 @@ y.output
 YaccUza
 src/syntax.output
 build/
+.gdb_history
