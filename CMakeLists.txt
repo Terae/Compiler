@@ -11,7 +11,7 @@ bison_target(Parser ${CMAKE_CURRENT_BINARY_DIR}/../src/compiler.y ${CMAKE_CURREN
 
 ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
 
-set(SRC_FILES src/main.c ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS} src/Symbols.c src/Error.c src/Assembly.c)
+set(SRC_FILES ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS} src/Symbols.c src/Error.c src/Assembly.c src/Interpreter.c)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/../src)
 add_executable(Symbols ${SRC_FILES})

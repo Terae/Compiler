@@ -1,4 +1,4 @@
-.PHONY: clean lib yacc lex build run all
+.PHONY: clean lib yacc lex build run interpreter all
 .DEFAULT_GOAL:= all
 .ONESHELL:
 
@@ -50,6 +50,9 @@ test: build
 	$(foreach file, $(TestsNoGood), $(SHELL) $(CHECKER) $(BUILD_DIR)/$(PROG_NAME) $(TEST_DIR)/impostor_C/$(file) 0; )
 	echo ""
 	$(foreach file, $(TestsGood),   $(SHELL) $(CHECKER) $(BUILD_DIR)/$(PROG_NAME) $(TEST_DIR)/legitime_C/$(file) 1; )
+
+interpreter: $(SOURCE_DIR)/Interpreter.c
+	gcc -g $(SOURCE_DIR)/Interpreter.c -o interpreter.out
 
 all: build run
 
