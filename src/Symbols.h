@@ -41,6 +41,8 @@ int popTmp(L_SYMBOL * list);
 
 void printTable(L_SYMBOL * list);
 
+S_SYMBOL * getSymbolByName(L_SYMBOL * list, char * name);
+
 int getAddrByName(L_SYMBOL * list, char * name);
 
 int getAddrByIndex(L_SYMBOL * list, int index);

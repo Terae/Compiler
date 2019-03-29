@@ -25,6 +25,8 @@ int **f3(int var, const char value) {
         break;
     }
 
+    ;
+
     int value = 3;
     switch(value) {
         case 0:

@@ -7,6 +7,22 @@
 #include "Symbols.h"
 #include <stdio.h>
 
+S_SYMBOL * getSymbolByName(L_SYMBOL * list, char * name) {
+    S_SYMBOL * found = NULL;
+    if (list != NULL) {
+        S_SYMBOL *aux = list->head;
+        while (aux != NULL && found == NULL) {
+            if (strcmp(aux->name,"")!= 0){
+                if (strcmp(name, aux->name) == 0) {
+                    found = aux;
+                }
+            }
+            aux = aux->next;
+        }
+    }
+    return found;
+}
+
 int getAddrByName(L_SYMBOL * list, char * name) {
   int found = -1;
   if (list != NULL) {

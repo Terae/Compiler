@@ -157,8 +157,8 @@ Params :                   { implementation_enabled = 1; }
 Constant : tNBR {
 			int index=addVar("");
 		 	int address = getAddrByIndex(TabSymbol, index);
-		 	writeAssembly(AFC" r0 %d", $1);
-			writeAssembly(STORE" %d r0", address);
+		 	writeAssembly(AFC" %s %d", r0, $1);
+			writeAssembly(STORE" %d %s", address, r0);
 		}
          | tCHAR_LITERAL
          | tSTRING_LITERAL
@@ -180,20 +180,20 @@ ExpressionPostfix : ExpressionPrimary
                   	{
                         	int index=addVar("");
                                 int address = getAddrByIndex(TabSymbol, index);
-                                writeAssembly(AFC" r0 %d", 1);
-                                writeAssembly(STORE" %d r0", address);
+                                writeAssembly(AFC" %s %d", r0, 1);
+                                writeAssembly(STORE" %d %s", address, r0);
 
-                                arithmeticOperation(ADD, TabSymbol);
+                                binaryOperation(ADD, TabSymbol);
                                 ESP-=popHead(TabSymbol);
                         }
                   | ExpressionPostfix tDECR
                   	{
                         	int index=addVar("");
                                 int address = getAddrByIndex(TabSymbol, index);
-                                writeAssembly(AFC" r0 %d", 1);
-                                writeAssembly(STORE" %d r0", address);
+                                writeAssembly(AFC" %s %d", r0, 1);
+                                writeAssembly(STORE" %d %s", address, r0);
 
-                                arithmeticOperation(SOU, TabSymbol);
+                                binaryOperation(SOU, TabSymbol);
                                 ESP-=popHead(TabSymbol);
                         };
 
@@ -205,10 +205,10 @@ ExpressionUnary : ExpressionPostfix
                 	{
                 		int index=addVar("");
                 		int address = getAddrByIndex(TabSymbol, index);
-                		writeAssembly(AFC" r0 %d", 1);
-                                writeAssembly(STORE" %d r0", address);
+                		writeAssembly(AFC" %s %d", r0, 1);
+                                writeAssembly(STORE" %d %s", address, r0);
 
-                                arithmeticOperation(ADD, TabSymbol);
+                                binaryOperation(ADD, TabSymbol);
                                 ESP-=popHead(TabSymbol);
                 	}
                 | tDECR   ExpressionUnary
@@ -216,10 +216,10 @@ ExpressionUnary : ExpressionPostfix
                 	{
                 		int index=addVar("");
                 		int address = getAddrByIndex(TabSymbol, index);
-                		writeAssembly(AFC" r0 %d", 1);
-                		writeAssembly(STORE" %d r0", address);
+                		writeAssembly(AFC" %s %d", r0, 1);
+                		writeAssembly(STORE" %d %s", address, r0);
 
-                		arithmeticOperation(SOU, TabSymbol);
+                		binaryOperation(SOU, TabSymbol);
 				ESP-=popHead(TabSymbol);
                 	}
                 }
@@ -234,18 +234,18 @@ UnaryOperator : '&'
               | '!';
 
 ExpressionCast : ExpressionUnary;
-               //| '(' TypeName ')' ExpressionCast;
+               | '(' FinalType ')' ExpressionCast;
 
 // Multiplicative operators ('*', '/', '%')
 ExpressionMultiplicative :                              ExpressionUnary
                          | ExpressionMultiplicative '*' ExpressionUnary
                          	{
-                                	arithmeticOperation(MUL, TabSymbol);
+                                	binaryOperation(MUL, TabSymbol);
                                         ESP-=popHead(TabSymbol);
                                 }
                          | ExpressionMultiplicative '/' ExpressionUnary
                          	{
-                                	arithmeticOperation(DIV, TabSymbol);
+                                	binaryOperation(DIV, TabSymbol);
                                 	ESP-=popHead(TabSymbol);
                                 }
                          | ExpressionMultiplicative '%' ExpressionUnary;
@@ -254,12 +254,12 @@ ExpressionMultiplicative :                              ExpressionUnary
 ExpressionAdditive :                        ExpressionMultiplicative
                    | ExpressionAdditive '+' ExpressionMultiplicative
                    	{
-                   		arithmeticOperation(ADD, TabSymbol);
+                   		binaryOperation(ADD, TabSymbol);
                    		ESP-=popHead(TabSymbol);
                    	}
                    | ExpressionAdditive '-' ExpressionMultiplicative
                    	{
-                   		arithmeticOperation(SOU, TabSymbol);
+                   		binaryOperation(SOU, TabSymbol);
                    		ESP-=popHead(TabSymbol);
                    	}
                    ;
@@ -272,14 +272,39 @@ ExpressionShift :                           ExpressionAdditive
 // Relational operators ('<', '<=', '>', '>=')
 ExpressionRelational :                          ExpressionShift
                      | ExpressionRelational '<' ExpressionShift
+                     	{
+                     		binaryOperation(INF, TabSymbol);
+                     		ESP-=popHead(TabSymbol);
+                     	}
                      | ExpressionRelational '>' ExpressionShift
+                     	{
+                     		binaryOperation(SUP, TabSymbol);
+                     		ESP-=popHead(TabSymbol);
+                     	}
                      | ExpressionRelational tLE ExpressionShift
-                     | ExpressionRelational tGE ExpressionShift;
+                     	{
+                     		binaryOperation(INFE, TabSymbol);
+                     		ESP-=popHead(TabSymbol);
+                     	}
+                     | ExpressionRelational tGE ExpressionShift
+                     	{
+                     		binaryOperation(SUPE, TabSymbol);
+                     		ESP-=popHead(TabSymbol);
+                     	};
 
 // Equality operators ('==', '!=')
 ExpressionEquality :                        ExpressionRelational
                    | ExpressionEquality tEQ ExpressionRelational
-                   | ExpressionEquality tNE ExpressionRelational;
+                   	{
+                   		binaryOperation(EQU, TabSymbol);
+                   		ESP-=popHead(TabSymbol);
+                   	}
+                   | ExpressionEquality tNE ExpressionRelational
+                   	{
+                   		binaryOperation(EQU, TabSymbol);
+                   		ESP-=popHead(TabSymbol);
+                   		negate(TabSymbol);
+                   	};
 
 // Bitwise AND operator ('&')
 ExpressionAnd :                   ExpressionEquality
