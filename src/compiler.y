@@ -1,50 +1,82 @@
+%code requires {
+    #include "Symbols.h"
+}
+
 %{
-		#include <stdio.h>
+    #include <stdio.h>
+    #include <string.h>
 
     #include "Assembly.h"
     #include "Error.h"
     #include "Symbols.h"
 
+    #define YYERROR_VERBOSE
+
     extern int const count_line;
 
     int yylex(void);
 
-		int implementation_enabled = 1;
+    int implementation_enabled = 1;
 
+    // Global vars
+    T_Type type_var;
 
-		/** Symbols **/
-		// Global vars
-		L_SYMBOL * TabSymbol;
-		int depth=0;
-		int ESP=4000;
-		enum T_Type type_var;
+    /** Symbols **/
+    // functions
+    S_SYMBOL *addVarWithType(const char *name, T_Type type) {
+        S_SYMBOL *symbol = NULL;
+        if(strcmp(name, "") == 0) {
+            symbol = createTmpSymbol(type);
+        } else {
+            symbol = createSymbol(name, type);
+        }
 
-		/** Symbols **/
-		// functions
-		void initSymbolTab(){
-			TabSymbol=createListSymbol();
-		}
-		int addVar(char * name){
-			int ret=addSymbol(TabSymbol,name,type_var,depth,ESP);
-			if (ret==-1){
-				yyerror("ERROR: Variable name already taken: %s", name);
-			}else{
-				ESP+=(int)type_var;
-				printTable(TabSymbol);
-			}
-			return ret;
-		}
+        if (symbol != NULL) {
+            printSymbolTable();
+        }
+        return symbol;
+    }
+
+    S_SYMBOL *addVar(const char *name) {
+        return addVarWithType(name, type_var);
+    }
+
 %}
 
 %union{
     int nbr;
-    char * string;
+    char *string;
+    struct Symbol *symbol;
+    enum Type type;
 }
 
 %token <nbr>    tNBR
 %token <string> tID
 %token <string> tCHAR_LITERAL
 %token <string> tSTRING_LITERAL
+
+%type <symbol> Constant
+%type <symbol> ExpressionPrimary
+%type <symbol> ExpressionPostfix
+%type <symbol> ExpressionUnary
+%type <symbol> ExpressionCast
+%type <symbol> ExpressionMultiplicative
+%type <symbol> ExpressionAdditive
+%type <symbol> ExpressionShift
+%type <symbol> ExpressionRelational
+%type <symbol> ExpressionEquality
+%type <symbol> ExpressionAnd
+%type <symbol> ExpressionExclusiveOr
+%type <symbol> ExpressionInclusiveOr
+%type <symbol> ExpressionLogicalAnd
+%type <symbol> ExpressionLogicalOr
+%type <symbol> ExpressionConditional
+%type <symbol> ExpressionAssignment
+%type <symbol> Expression
+%type <symbol> ExpressionConstant
+
+%type <type> TypeSpecifier
+%type <type> FinalType
 
 %token tMAIN tPRINTF
 %token tCONST tINT tVOID tCHAR tENUM tBOOL
@@ -93,7 +125,12 @@
 
 %%
 
-End : ';' {ESP-=popTmp(TabSymbol);};
+End : error ';'
+        {
+                // yyerrok();
+                // enableErrorReporting();
+        }
+    | ';' { popTmp(); };
 
 Program :         ExternalDeclaration
         | Program ExternalDeclaration;
@@ -104,10 +141,10 @@ ExternalDeclaration : FunctionDefinition
 FunctionDefinition : FinalType tID '(' Params ')' FunctionStatementCompound
                    | FinalType tID '(' Params ')' End;
 
-TypeSpecifier : tINT {type_var=Integer;}
-              | tVOID
-              | tCHAR {type_var=Character;}
-              | tBOOL;
+TypeSpecifier : tINT  { type_var = Integer; }
+              | tVOID { type_var = Void; }
+              | tCHAR { type_var = Character; }
+              | tBOOL { type_var = Boolean; };
 
 TypeQualifier : tCONST;
 
@@ -121,18 +158,18 @@ Pointer : TypeQualifierList '*' Pointer
 
 FinalType :                   TypeSpecifier
           |                   TypeSpecifier Pointer
-          | TypeQualifierList TypeSpecifier
-          | TypeQualifierList TypeSpecifier Pointer;
+          | TypeQualifierList TypeSpecifier { $$ = $2; }
+          | TypeQualifierList TypeSpecifier Pointer { $$ = $2; };
 
 TypedDeclarationAssignmentNext : End
                                | ',' TypedDeclarationAssignment;
 
-TypedDeclarationAssignment : tID  {addVar($1);} '=' ExpressionAssignment TypedDeclarationAssignmentNext;
+TypedDeclarationAssignment : tID  { addVar($1); } '=' ExpressionAssignment TypedDeclarationAssignmentNext;
 
 TypedDeclarationNext : End
                      | ',' TypedDeclaration;
 // Non-affected declaration : int a,b;
-TypedDeclaration : tID {addVar($1);} TypedDeclarationNext
+TypedDeclaration : tID { addVar($1); } TypedDeclarationNext
                  | TypedDeclarationAssignment;
 
 Declaration : FinalType TypedDeclaration;
@@ -155,46 +192,78 @@ Params :                   { implementation_enabled = 1; }
        | ParamsUnnamedList { implementation_enabled = 0; };
 
 Constant : tNBR {
-			int index=addVar("");
-		 	int address = getAddrByIndex(TabSymbol, index);
-		 	writeAssembly(AFC" %s %d", r0, $1);
-			writeAssembly(STORE" %d %s", address, r0);
-		}
+                        S_SYMBOL *symbol = addVarWithType("", Integer);
+                        writeAssembly(AFC" %d %d", symbol->addr, $1);
+                        $$ = symbol;
+                }
          | tCHAR_LITERAL
+                 {
+                         S_SYMBOL *symbol = addVarWithType("", Character);
+                         writeAssembly(AFC" %d %d", symbol->addr, (int)($1[0]));
+                 }
          | tSTRING_LITERAL
+                 {
+                         warning("The present compiler is not able to manage strings: %s. Transforming it into %d.", $1, (int)($1[0]));
+                         S_SYMBOL *symbol = addVarWithType("", Character);
+                         writeAssembly(AFC" %d %d", symbol->addr, (int)($1[0]));
+                 }
          | tTRUE
+                 {
+                         S_SYMBOL *symbol = addVarWithType("", Boolean);
+                         writeAssembly(AFC" %d 1", symbol->addr);
+                         $$ = symbol;
+                 }
          | tFALSE
-         | tNULL;
+                 {
+                         S_SYMBOL *symbol = addVarWithType("", Boolean);
+                         writeAssembly(AFC" %d 0", symbol->addr);
+                         $$ = symbol;
+                 }
+         | tNULL
+                 {
+                         S_SYMBOL *symbol = addVarWithType("", Boolean);
+                         writeAssembly(AFC" %d 0", symbol->addr);
+                         $$ = symbol;
+                 };
 
-ExpressionPrimary : tID {$1=addVar("");}
+ExpressionPrimary : tID {
+                                S_SYMBOL *id = getSymbolByName($1);
+                                if (id == NULL) {
+                                    yyerror("Unknown id: '%s'", $1);
+                                } else {
+                                    $$ = id;
+                                }
+                        }
                   | Constant
-                  | '(' Expression ')';
+                  | '(' Expression ')' { $$ = $2; }
 
 ExpressionPostfix : ExpressionPrimary
-                  | ExpressionPostfix '{' {depth+=1;} Expression '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;}
+                  | ExpressionPostfix '{' { pushBlock(); } Expression '}' { popBlock(); }
                   | ExpressionPostfix '(' ')'
                   | ExpressionPostfix '(' ArgumentExpressionList ')'
                   | ExpressionPostfix '.' tID
                   | ExpressionPostfix tPTR_OP tID
                   | ExpressionPostfix tINCR
-                  	{
-                        	int index=addVar("");
-                                int address = getAddrByIndex(TabSymbol, index);
-                                writeAssembly(AFC" %s %d", r0, 1);
-                                writeAssembly(STORE" %d %s", address, r0);
+                          {
+                                S_SYMBOL *left = $1; // getLastSymbol();
+                                S_SYMBOL *copy = addVarWithType("", left->type);
+                                writeAssembly(COP" %d %d", copy->addr, left->addr);
+                                S_SYMBOL *one = addVarWithType("", Integer);
+                                writeAssembly(AFC" %d 1", one->addr);
 
-                                binaryOperation(ADD, TabSymbol);
-                                ESP-=popHead(TabSymbol);
+                                binaryOperation(ADD, left, one);
+                                $$ = copy;
                         }
                   | ExpressionPostfix tDECR
-                  	{
-                        	int index=addVar("");
-                                int address = getAddrByIndex(TabSymbol, index);
-                                writeAssembly(AFC" %s %d", r0, 1);
-                                writeAssembly(STORE" %d %s", address, r0);
+                          {
+                                S_SYMBOL *left = $1; // getLastSymbol();
+                                S_SYMBOL *copy = addVarWithType("", left->type);
+                                writeAssembly(COP" %d %d", copy->addr, left->addr);
+                                S_SYMBOL *one = addVarWithType("", Integer);
+                                writeAssembly(AFC" %d 1", one->addr);
 
-                                binaryOperation(SOU, TabSymbol);
-                                ESP-=popHead(TabSymbol);
+                                binaryOperation(SOU, left, one);
+                                $$ = copy;
                         };
 
 ArgumentExpressionList :                            ExpressionAssignment
@@ -202,129 +271,145 @@ ArgumentExpressionList :                            ExpressionAssignment
 
 ExpressionUnary : ExpressionPostfix
                 | tINCR   ExpressionUnary
-                	{
-                		int index=addVar("");
-                		int address = getAddrByIndex(TabSymbol, index);
-                		writeAssembly(AFC" %s %d", r0, 1);
-                                writeAssembly(STORE" %d %s", address, r0);
-
-                                binaryOperation(ADD, TabSymbol);
-                                ESP-=popHead(TabSymbol);
-                	}
+                        {
+                                S_SYMBOL *one = addVarWithType("", Integer);
+                                writeAssembly(AFC" %d 1", one->addr);
+                                $$ = binaryOperation(ADD, $2, one);
+                        }
                 | tDECR   ExpressionUnary
-                {
-                	{
-                		int index=addVar("");
-                		int address = getAddrByIndex(TabSymbol, index);
-                		writeAssembly(AFC" %s %d", r0, 1);
-                		writeAssembly(STORE" %d %s", address, r0);
-
-                		binaryOperation(SOU, TabSymbol);
-				ESP-=popHead(TabSymbol);
-                	}
-                }
+                        {
+                                S_SYMBOL *one = addVarWithType("", Integer);
+                                writeAssembly(AFC" %d 1", one->addr);
+                                $$ = binaryOperation(SOU, $2, one);
+                        }
                 | tSIZEOF ExpressionUnary
-                | UnaryOperator ExpressionCast;
-
-UnaryOperator : '&'
-              | '*'
-              | '+'
-              | '-'
-              | '~'
-              | '!';
+                        {
+                                S_SYMBOL *s = $2, *result = addVarWithType("", Integer);
+                                writeAssembly(AFC" %d %d", result->addr, getSymbolSize(s));
+                                freeIfTmp(s);
+                                $$ = result;
+                        }
+                | '&' ExpressionCast
+                        {
+                                S_SYMBOL *s = $2;
+                                S_SYMBOL *a = addVarWithType("", s->type);
+                                writeAssembly(AFC" %d %d", a->addr, s->addr);
+                                $$ = a;
+                        }
+                | '*' ExpressionCast
+                        {
+                                warning("The present compiler is not able to manage the dereferencement of pointer: %d, skipping.", $2->addr);
+                                $$ = $2;
+                        }
+                | '+' ExpressionCast %prec '*' { $$ = $2; }
+                | '-' ExpressionCast %prec '*'
+                        {
+                                S_SYMBOL *tmp = addVarWithType("", Integer);
+                                writeAssembly(AFC" %d -1", tmp->addr);
+                                $$ = binaryOperation(MUL, $2, tmp);
+                        }
+                | '~' ExpressionCast { $$ = bitnot($2); }
+                | '!' ExpressionCast { $$ = negate($2); };
 
 ExpressionCast : ExpressionUnary;
-               | '(' FinalType ')' ExpressionCast;
+               | '(' FinalType ')' ExpressionCast
+                               {
+                                       switch ($2) {
+                                           case Integer:
+                                           {
+                                               S_SYMBOL *s = $4;
+                                               s->type = Integer;
+                                               $$ = s;
+                                               break;
+                                           }
+
+                                           case Character:
+                                           {
+                                               S_SYMBOL *s = $4;
+                                               s->type = Character;
+
+                                               S_SYMBOL *mask = addVarWithType("", Integer);
+                                               writeAssembly(AFC" %d 255", mask->addr);
+
+                                               $$ = bitand(s, mask);
+                                               break;
+                                           }
+
+                                           case Boolean:
+                                               $$ = toBool($4);
+                                               break;
+
+                                           case Void:
+                                               yyerror("Impossible to cast to the void type.");
+                                               $$ = $4;
+                                               break;
+
+                                           case Error:
+                                           default:
+                                               yyerror("Impossible to cast, error on the type.");
+                                               $$ = $4;
+                                       }
+                               };
 
 // Multiplicative operators ('*', '/', '%')
 ExpressionMultiplicative :                              ExpressionUnary
-                         | ExpressionMultiplicative '*' ExpressionUnary
-                         	{
-                                	binaryOperation(MUL, TabSymbol);
-                                        ESP-=popHead(TabSymbol);
-                                }
-                         | ExpressionMultiplicative '/' ExpressionUnary
-                         	{
-                                	binaryOperation(DIV, TabSymbol);
-                                	ESP-=popHead(TabSymbol);
-                                }
-                         | ExpressionMultiplicative '%' ExpressionUnary;
+                         | ExpressionMultiplicative '*' ExpressionUnary { $$ = binaryOperation(MUL, $1, $3); }
+                         | ExpressionMultiplicative '/' ExpressionUnary { $$ = binaryOperation(DIV, $1, $3); }
+                         | ExpressionMultiplicative '%' ExpressionUnary { $$ = modulo($1, $3); };
 
 // Additive operators ('+', '-')
 ExpressionAdditive :                        ExpressionMultiplicative
-                   | ExpressionAdditive '+' ExpressionMultiplicative
-                   	{
-                   		binaryOperation(ADD, TabSymbol);
-                   		ESP-=popHead(TabSymbol);
-                   	}
-                   | ExpressionAdditive '-' ExpressionMultiplicative
-                   	{
-                   		binaryOperation(SOU, TabSymbol);
-                   		ESP-=popHead(TabSymbol);
-                   	}
-                   ;
+                   | ExpressionAdditive '+' ExpressionMultiplicative { $$ = binaryOperation(ADD, $1, $3); }
+                   | ExpressionAdditive '-' ExpressionMultiplicative { $$ = binaryOperation(SOU, $1, $3); };
 
 // Shift operators ('<<', '>>')
 ExpressionShift :                           ExpressionAdditive
-                | ExpressionShift tRIGHT_OP ExpressionAdditive
-                | ExpressionShift tLEFT_OP  ExpressionAdditive;
+                | ExpressionShift tRIGHT_OP ExpressionAdditive { $$ = binaryOperation(DIV, $1, powerOfTwo($3)); }
+                | ExpressionShift tLEFT_OP  ExpressionAdditive { $$ = binaryOperation(MUL, $1, powerOfTwo($3)); };
 
 // Relational operators ('<', '<=', '>', '>=')
 ExpressionRelational :                          ExpressionShift
-                     | ExpressionRelational '<' ExpressionShift
-                     	{
-                     		binaryOperation(INF, TabSymbol);
-                     		ESP-=popHead(TabSymbol);
-                     	}
-                     | ExpressionRelational '>' ExpressionShift
-                     	{
-                     		binaryOperation(SUP, TabSymbol);
-                     		ESP-=popHead(TabSymbol);
-                     	}
-                     | ExpressionRelational tLE ExpressionShift
-                     	{
-                     		binaryOperation(INFE, TabSymbol);
-                     		ESP-=popHead(TabSymbol);
-                     	}
-                     | ExpressionRelational tGE ExpressionShift
-                     	{
-                     		binaryOperation(SUPE, TabSymbol);
-                     		ESP-=popHead(TabSymbol);
-                     	};
+                     | ExpressionRelational '<' ExpressionShift { $$ = binaryOperation(INF, $1, $3); }
+                     | ExpressionRelational '>' ExpressionShift { $$ = binaryOperation(INF, $3, $1); }
+                     | ExpressionRelational tLE ExpressionShift { $$ = negate(binaryOperation(INF, $3, $1)); }
+                     | ExpressionRelational tGE ExpressionShift { $$ = negate(binaryOperation(INF, $1, $3)); };
 
 // Equality operators ('==', '!=')
 ExpressionEquality :                        ExpressionRelational
-                   | ExpressionEquality tEQ ExpressionRelational
-                   	{
-                   		binaryOperation(EQU, TabSymbol);
-                   		ESP-=popHead(TabSymbol);
-                   	}
-                   | ExpressionEquality tNE ExpressionRelational
-                   	{
-                   		binaryOperation(EQU, TabSymbol);
-                   		ESP-=popHead(TabSymbol);
-                   		negate(TabSymbol);
-                   	};
+                   | ExpressionEquality tEQ ExpressionRelational { $$ = binaryOperation(EQU, $1, $3); }
+                   | ExpressionEquality tNE ExpressionRelational { $$ = negate(binaryOperation(EQU, $1, $3)); };
 
 // Bitwise AND operator ('&')
 ExpressionAnd :                   ExpressionEquality
-              | ExpressionAnd '&' ExpressionEquality;
+              | ExpressionAnd '&' ExpressionEquality { $$ = bitand($1, $3); };
 
 // Bitwise XOR operator ('^')
 ExpressionExclusiveOr :                           ExpressionAnd
-                      | ExpressionExclusiveOr '^' ExpressionAnd;
+                      | ExpressionExclusiveOr '^' ExpressionAnd { $$ = bitxor($1, $3); };
 
 // Bitwise OR operator ('|')
 ExpressionInclusiveOr :                           ExpressionExclusiveOr
-                      | ExpressionInclusiveOr '|' ExpressionExclusiveOr;
+                      | ExpressionInclusiveOr '|' ExpressionExclusiveOr { $$ = bitor($1, $3); };
 
 // Logical AND operator ('&&')
 ExpressionLogicalAnd :                           ExpressionInclusiveOr
-                     | ExpressionLogicalAnd tAND ExpressionInclusiveOr;
+                     | ExpressionLogicalAnd tAND ExpressionInclusiveOr
+                         {
+                                S_SYMBOL *s = binaryOperation(ADD, toBool($1), toBool($3));
+                                S_SYMBOL *two = addVarWithType("", Integer);
+                                writeAssembly(AFC" %d 2", two->addr);
+                                $$ = binaryOperation(EQU, s, two);
+                         };
 
 // Logical OR operator ('||')
 ExpressionLogicalOr :                         ExpressionLogicalAnd
-                    | ExpressionLogicalOr tOR ExpressionLogicalAnd;
+                    | ExpressionLogicalOr tOR ExpressionLogicalAnd
+                         {
+                                S_SYMBOL *s = binaryOperation(ADD, toBool($1), toBool($3));
+                                S_SYMBOL *zero = addVarWithType("", Integer);
+                                writeAssembly(AFC" %d 0", zero->addr);
+                                $$ = binaryOperation(INF, zero, s);
+                         };
 
 // Conditional operator (… '?' … ':' …)
 ExpressionConditional : ExpressionLogicalOr
@@ -363,11 +448,11 @@ StatementLabeled : tID ':' Statement
                  | tCASE ExpressionConstant ':' Statement
                  | tDEFAULT ':' Statement;
 
-FunctionStatementCompound : '{' {depth+=1;} { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } }               '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;}
-                          | '{' {depth+=1;} { if(implementation_enabled == 0) { yyerror("parameter name ommitted"); } } BlockItemList '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;};
+FunctionStatementCompound : '{' { pushBlock(); } { if (implementation_enabled == 0) { yyerror("parameter name ommitted"); } }               '}' { popBlock(); }
+                          | '{' { pushBlock(); } { if (implementation_enabled == 0) { yyerror("parameter name ommitted"); } } BlockItemList '}' { popBlock(); };
 
-StatementCompound : '{'{depth+=1;}               '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;}
-                  | '{'{depth+=1;} BlockItemList '}' {ESP-=popDepth(TabSymbol,depth);depth-=1;};
+StatementCompound : '{' { pushBlock(); }               '}' { popBlock(); }
+                  | '{' { pushBlock(); } BlockItemList '}' { popBlock(); };
 
 BlockItemList : BlockItem
               | BlockItemList BlockItem;
@@ -400,21 +485,21 @@ StatementJump : tCONTINUE End
 %%
 
 int main(int argc, char const **argv) {
-    initSymbolTab();
-    char *outputPath = strdup("a.s");
+    initSymbolTable();
+
+    char *outputPath = strdup("build/a.s");
     initAssemblyOutput(outputPath);
 
     yyparse();
 
-
     closeAssemblyOutput(outputPath);
     free(outputPath);
 
-    freeList(TabSymbol);
+    resetSymbolTable();
 
     if(errorsOccured() > 0) {
-    	vfprintf(stderr, "%d errors occured during compilation whicph is aborted.", errorsOccured());
-    	return FAILURE_COMPILATION;
+        fprintf(stderr, "%d errors occured during compilation, which is aborted.", errorsOccured());
+        return FAILURE_COMPILATION;
     }
 
     return 0;
