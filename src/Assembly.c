@@ -25,7 +25,7 @@ static char *bufferAssembly = NULL;
 
 void initAssemblyOutput(const char *path) {
     output = fopen(path, "w");
-    if(output == NULL) {
+    if (output == NULL) {
         fprintf(stderr, "The output file '%s' has not been opened: %s\n", path, strerror(errno));
         exit(FAILURE_OPEN_OUTPUT);
     }
@@ -34,7 +34,7 @@ void initAssemblyOutput(const char *path) {
 }
 
 void closeAssemblyOutput(const char *path) {
-    if(errorsOccured()) {
+    if (errorsOccured()) {
         fclose(output);
         remove(path);
     } else {

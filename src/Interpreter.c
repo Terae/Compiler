@@ -41,13 +41,13 @@ void print_help(const char *program) {
 
 void interprete(const char *path);
 
-int main(int argc, const char *argv[]) {
-    if(argc != 2) {
+int main(int argc, const char **argv) {
+    if (argc != 2) {
         print_help(argv[0]);
     }
 
-    const char *extension = strrchr(argv[1], '1');
-    if(!strcmp(extension, "s")) {
+    const char *extension = strrchr(argv[1], '.');
+    if (!strcmp(extension, "s")) {
         print_help(argv[0]);
     }
 
@@ -70,7 +70,8 @@ int pop(void) {
 }
 
 void error_read(const char *op, int expected, int got) {
-    fprintf(stderr, "The op code %s needs %d opérande%s, but only %d found.\n", op, expected, (expected > 1 ? "s" : ""), got);
+    fprintf(stderr, "The op code %s needs %d operand%s, but only %d found.\n", op, expected, (expected > 1 ? "s" : ""),
+            got);
     exit(1);
 }
 
@@ -80,7 +81,7 @@ void error_read(const char *op, int expected, int got) {
 
 /// @return The size of the given file
 size_t get_file_size(FILE *file) {
-    if(file == NULL) {
+    if (file == NULL) {
         return 0;
     }
     fseek(file, 0, SEEK_END);
@@ -91,13 +92,13 @@ size_t get_file_size(FILE *file) {
 
 /// @input Hexa value on a single byte and without the '0x' prefix
 int hexa_to_int(char hexa) {
-    if(hexa >= '0' && hexa <= '9') {
+    if (hexa >= '0' && hexa <= '9') {
         return hexa - '0';
     }
-    if(hexa >= 'A' && hexa <= 'F') {
+    if (hexa >= 'A' && hexa <= 'F') {
         return hexa - 'A' + 10;
     }
-    if(hexa >= 'a' && hexa <= 'f') {
+    if (hexa >= 'a' && hexa <= 'f') {
         return hexa - 'a' + 10;
     }
     fprintf(stderr, "Invalid hexadecimal number: '0x%d'\n", hexa);
@@ -120,16 +121,16 @@ void interprete(const char *path) {
 
     // Opening the assembly file to read its content
     assembly_file = fopen(path, "rb");
-    if(assembly_file != NULL) {
+    if (assembly_file != NULL) {
         size_t size = get_file_size(assembly_file);
-        
+
         assembly_source = malloc(size);
 
-        if(assembly_source != NULL) {
+        if (assembly_source != NULL) {
             fread(assembly_source, 1, size, assembly_file);
-            for(size_t i = 0, last = 0; i < size; ++i) {
+            for (size_t i = 0, last = 0; i < size; ++i) {
                 // Memoization of assembly lines for each instruction
-                if(assembly_source[i] == '\n') {
+                if (assembly_source[i] == '\n') {
                     lines_index[lines_count++] = last;
                     last = i + 1;
                 }
@@ -146,7 +147,7 @@ void interprete(const char *path) {
 
     int op, arg1, arg2, arg3, pc = 0;
 
-    while(pc < lines_count) {
+    while (pc < (int)lines_count) {
         char *line = &assembly_source[lines_index[pc]];
         op = hexa_to_int(line[0]);
         line++;
@@ -154,13 +155,13 @@ void interprete(const char *path) {
 #if defined(DEBUG)
         printf("Line: %d\nStackPointer: %d\n", pc + 1, sp);
 
-        for(int i = 0; i < 50; ++i) {
+        for (int i = 0; i < 50; ++i) {
             printf("\tmemory[%d]: %d\n", i, memory[i]);
         }
         fputc('\n', stdout);
 #endif
 
-        switch(op) {
+        switch (op) {
             case ADD: {
                 READ_THREE(STRINGIFY(ADD));
                 *get_memory(arg1) = *get_memory(arg2) + *get_memory(arg3);
@@ -241,6 +242,7 @@ void interprete(const char *path) {
                 READ_ONE(STRINGIFY(JMPC));
                 printf("%d", *get_memory(arg1));
                 fflush(stdout);
+                break;
             }
             default: {
                 fprintf(stderr, "ERROR: unknown op code: '%d'\n", op);

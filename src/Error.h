@@ -13,8 +13,8 @@
 #define FAILURE_COMPILATION 3
 #define FAILURE_INTERNAL 4
 
-void yyerror(const char*, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
-void warning(const char*, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
+void yyerror(const char *, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
+void warning(const char *, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 
 int errorsOccured();
 

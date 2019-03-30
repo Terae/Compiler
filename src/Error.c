@@ -12,7 +12,7 @@
 extern int count_line;
 static int count_error = 0;
 
-void yyerror(const char* msg, ...) {
+void yyerror(const char *msg, ...) {
     va_list args;
 
     va_start(args, msg);
@@ -24,13 +24,13 @@ void yyerror(const char* msg, ...) {
     count_error++;
 
 
-    if(count_error >= NBR_ERRORS_MAX) {
+    if (count_error >= NBR_ERRORS_MAX) {
         fprintf(stderr, "Too many errors, abandoning the compilation.\n");
         exit(FAILURE_COMPILATION);
     }
 }
 
-void warning(const char* msg, ...) {
+void warning(const char *msg, ...) {
     va_list args;
 
     va_start(args, msg);
