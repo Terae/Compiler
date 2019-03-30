@@ -43,6 +43,8 @@
 
         return val;
     }
+
+    #define echo printf("\x1b[34m"); ECHO; printf("\x1b[0m");
 %}
 
 identifier      [_a-zA-Z][_a-zA-Z0-9]*
@@ -67,13 +69,13 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 <LCOMMENT_MODE>.    {}
 
 \"(\\.|[^\\"])*\"   {
-                        ECHO;
+                        echo;
                         yylval.string = helperStringCleaner(yytext);
                         return tSTRING_LITERAL;
                     }
 
 \'(\\.|[^\\'])+\'    {
-                        ECHO;
+                        echo;
                         char* val = helperStringCleaner(yytext);
                         if(strlen(val) != 1) {
                             yyerror("A char literal can only be composed by a single character.");
@@ -82,107 +84,107 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
                         return tCHAR_LITERAL;
                     }
 
-"main"          {ECHO; return tID;}
-"printf"        {ECHO; return tPRINTF;}
+"main"          {echo; return tID;}
+"printf"        {echo; return tPRINTF;}
 
-"const"         {ECHO; return tCONST;}
-"int"           {ECHO; return tINT;}
-"void"          {ECHO; return tVOID;}
-"char"          {ECHO; return tCHAR;}
-"enum"          {ECHO; return tENUM;}
-"bool"          {ECHO; return tBOOL;}
-"NULL"          {ECHO; return tNULL;}
+"const"         {echo; return tCONST;}
+"int"           {echo; return tINT;}
+"void"          {echo; return tVOID;}
+"char"          {echo; return tCHAR;}
+"enum"          {echo; return tENUM;}
+"bool"          {echo; return tBOOL;}
+"NULL"          {echo; return tNULL;}
 
-"if"            {ECHO; return tIF;}
-"else"          {ECHO; return tELSE;}
-"switch"        {ECHO; return tSWITCH;}
-"case"          {ECHO; return tCASE;}
-"default"       {ECHO; return tDEFAULT;}
-"for"           {ECHO; return tFOR;}
-"while"         {ECHO; return tWHILE;}
-"do"            {ECHO; return tDO;}
-"break"         {ECHO; return tBREAK;}
-"continue"      {ECHO; return tCONTINUE;}
-"return"        {ECHO; return tRETURN;}
-"sizeof"        {ECHO; return tSIZEOF;}
+"if"            {echo; return tIF;}
+"else"          {echo; return tELSE;}
+"switch"        {echo; return tSWITCH;}
+"case"          {echo; return tCASE;}
+"default"       {echo; return tDEFAULT;}
+"for"           {echo; return tFOR;}
+"while"         {echo; return tWHILE;}
+"do"            {echo; return tDO;}
+"break"         {echo; return tBREAK;}
+"continue"      {echo; return tCONTINUE;}
+"return"        {echo; return tRETURN;}
+"sizeof"        {echo; return tSIZEOF;}
 
-"&&"            {ECHO; return tAND;}
-"||"            {ECHO; return tOR;}
-"true"          {ECHO; return tTRUE;}
-"false"         {ECHO; return tFALSE;}
+"&&"            {echo; return tAND;}
+"||"            {echo; return tOR;}
+"true"          {echo; return tTRUE;}
+"false"         {echo; return tFALSE;}
 
-">>="           {ECHO; return tRIGHT_ASSIGN;}
-"<<="           {ECHO; return tLEFT_ASSIGN;}
-"+="            {ECHO; return tADD_ASSIGN;}
-"-="            {ECHO; return tSUB_ASSIGN;}
-"*="            {ECHO; return tMUL_ASSIGN;}
-"/="            {ECHO; return tDIV_ASSIGN;}
-"%="            {ECHO; return tMOD_ASSIGN;}
-"&="            {ECHO; return tAND_ASSIGN;}
-"^="            {ECHO; return tXOR_ASSIGN;}
-"|="            {ECHO; return tOR_ASSIGN;}
+">>="           {echo; return tRIGHT_ASSIGN;}
+"<<="           {echo; return tLEFT_ASSIGN;}
+"+="            {echo; return tADD_ASSIGN;}
+"-="            {echo; return tSUB_ASSIGN;}
+"*="            {echo; return tMUL_ASSIGN;}
+"/="            {echo; return tDIV_ASSIGN;}
+"%="            {echo; return tMOD_ASSIGN;}
+"&="            {echo; return tAND_ASSIGN;}
+"^="            {echo; return tXOR_ASSIGN;}
+"|="            {echo; return tOR_ASSIGN;}
 
-">>"            {ECHO; return tRIGHT_OP;}
-"<<"            {ECHO; return tLEFT_OP;}
-"->"            {ECHO; return tPTR_OP;}
+">>"            {echo; return tRIGHT_OP;}
+"<<"            {echo; return tLEFT_OP;}
+"->"            {echo; return tPTR_OP;}
 
-"<="            {ECHO; return tLE;}
-">="            {ECHO; return tGE;}
-"=="            {ECHO; return tEQ;}
-"!="            {ECHO; return tNE;}
+"<="            {echo; return tLE;}
+">="            {echo; return tGE;}
+"=="            {echo; return tEQ;}
+"!="            {echo; return tNE;}
 
-("{"|"<%")      {ECHO; return '{';}
-("}"|"%>")      {ECHO; return '}';}
-"("             {ECHO; return '(';}
-")"             {ECHO; return ')';}
-[ \t]+          {ECHO;}
-\n              {ECHO; ++count_line;}
+("{"|"<%")      {echo; return '{';}
+("}"|"%>")      {echo; return '}';}
+"("             {echo; return '(';}
+")"             {echo; return ')';}
+[ \t]+          {echo;}
+\n              {echo; ++count_line;}
 
-"++"            {ECHO; return tINCR;}
-"--"            {ECHO; return tDECR;}
+"++"            {echo; return tINCR;}
+"--"            {echo; return tDECR;}
 
-"+"             {ECHO; return '+';}
-"-"             {ECHO; return '-';}
-"/"             {ECHO; return '/';}
-"*"             {ECHO; return '*';}
-"%"             {ECHO; return '%';}
-"="             {ECHO; return '=';}
-","             {ECHO; return ',';}
-"!"             {ECHO; return '!';}
-";"             {ECHO; return ';';}
+"+"             {echo; return '+';}
+"-"             {echo; return '-';}
+"/"             {echo; return '/';}
+"*"             {echo; return '*';}
+"%"             {echo; return '%';}
+"="             {echo; return '=';}
+","             {echo; return ',';}
+"!"             {echo; return '!';}
+";"             {echo; return ';';}
 
-("["|"<:")      {ECHO; return '[';}
-("]"|":>")      {ECHO; return ']';}
+("["|"<:")      {echo; return '[';}
+("]"|":>")      {echo; return ']';}
 
-"."             {ECHO; return '.';}
-"~"             {ECHO; return '~';}
-"^"             {ECHO; return '^';}
-"?"             {ECHO; return '?';}
-":"             {ECHO; return ':';}
-"<"             {ECHO; return '<';}
-">"             {ECHO; return '>';}
+"."             {echo; return '.';}
+"~"             {echo; return '~';}
+"^"             {echo; return '^';}
+"?"             {echo; return '?';}
+":"             {echo; return ':';}
+"<"             {echo; return '<';}
+">"             {echo; return '>';}
 
 {identifier}    {
-                    ECHO;
+                    echo;
                     yylval.string = strdup(yytext);
                     return tID;
                 }
 
 {number}        {
-                    ECHO;
+                    echo;
                     char *str;
                     yylval.nbr = strtol(yytext, &str, 0);
-                    if(str - yytext < strlen(yytext)) {
+                    if(str - yytext < (int)strlen(yytext)) {
                         yyerror("Invalid number constant: %s", yytext);
                     }
                     return tNBR;
                 }
 
 {numberExp}     {
-                    ECHO;
+                    echo;
                     char *str;
                     yylval.nbr = (int)strtod(yytext, &str);
-                    if(str - yytext < strlen(yytext)) {
+                    if(str - yytext < (int)strlen(yytext)) {
                         yyerror("Invalid exponential number constant: %s", yytext);
                     }
                     return tNBR;

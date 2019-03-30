@@ -9,17 +9,19 @@
 
 typedef unsigned int address_t;
 
-typedef enum T_Type {
+typedef enum Type {
     Integer,
     Character,
+    Boolean,
+    Void,
     Error
 } T_Type;
 
 typedef struct Symbol {
-    int index;
+    unsigned int index;
     address_t addr;
     char *name;
-    enum T_Type type;
+    T_Type type;
     /*int isConst;
     int isInitialized;*/
     unsigned int depth;
@@ -52,12 +54,16 @@ void popTmp(void);
 /// Meta-data of symbols
 int isTmp(S_SYMBOL *s);
 
+void freeIfTmp(S_SYMBOL *s);
+
 int getSymbolSize(const S_SYMBOL *s);
 
-void printSymbolTable(L_SYMBOL *list);
+void printSymbolTable();
 
 S_SYMBOL *getSymbolByName(const char *name);
 
 S_SYMBOL *getSymbolByIndex(unsigned int index);
+
+S_SYMBOL *getLastSymbol(void);
 
 #endif //AUL_SYMBOLS_H

@@ -14,7 +14,9 @@ static address_t ESP = 4000;
 static char *tmpSymbol;
 
 void freeSymbol(S_SYMBOL *tofree) {
-    free(tofree->name);
+    if (strcmp(tofree->name, "") != 0) {
+        free(tofree->name);
+    }
     free(tofree);
 }
 
@@ -51,6 +53,11 @@ void resetSymbolTable(void) {
  * @return A pointer to the created symbol
  */
 S_SYMBOL *createSymbol(const char *name, T_Type type) {
+    if (strcmp(name, "") == 0) {
+        yyerror("Empty variable name forbidden");
+        return NULL;
+    }
+
     S_SYMBOL *symbol = NULL;
     if (SymbolTable != NULL) {
         S_SYMBOL *aux = SymbolTable->head;
@@ -58,7 +65,7 @@ S_SYMBOL *createSymbol(const char *name, T_Type type) {
             if (strcmp(aux->name, tmpSymbol) != 0) {
                 if (strcmp(aux->name, name) == 0) {
                     // The symbol already exists
-                    yyerror("ERROR: Variable name already taken: %s", name);
+                    yyerror("Variable name already taken: %s", name);
                     return NULL;
                 }
             }
@@ -83,17 +90,18 @@ S_SYMBOL *createSymbol(const char *name, T_Type type) {
 }
 
 /**
- * @description Pop last element
+ * @description Pop last element and all intermediate temporary values
  */
 void popHead() {
-    if (SymbolTable != NULL) {
-        if (SymbolTable->head != NULL) {
+    int count = 0;
+    if (SymbolTable != NULL && SymbolTable->head != NULL) {
+        do {
             S_SYMBOL *aux = SymbolTable->head;
-            ESP -= aux->type;
+            ESP -= getSymbolSize(aux);
             SymbolTable->head = aux->next;
             freeSymbol(aux);
             SymbolTable->size -= 1;
-        }
+        } while (SymbolTable->head != NULL && strcmp(SymbolTable->head->name, "") == 0);
     }
 }
 
@@ -128,15 +136,30 @@ S_SYMBOL *createTmpSymbol(T_Type type) {
  * @description Pop all temporary Symbols at the end
  */
 void popTmp(void) {
+    int count = 0;
     if (SymbolTable != NULL) {
-        while (SymbolTable->head != NULL && !strcmp(SymbolTable->head->name, tmpSymbol)) {
+        while (SymbolTable->head != NULL && (strcmp(SymbolTable->head->name, tmpSymbol) == 0 ||
+                                             strcmp(SymbolTable->head->name, "") == 0)) {
             popHead();
+            count++;
         }
     }
+    // printf("popTmp called with %d tmp variables popped.\n", count);
 }
 
 int isTmp(S_SYMBOL *s) {
-    return s->name == tmpSymbol;
+    return strcmp(s->name, tmpSymbol) == 0;
+}
+
+void freeIfTmp(S_SYMBOL *s) {
+    if (isTmp(s)) {
+        if (SymbolTable->head == s) {
+            popHead();
+        } else {
+            // An intermediate temporary symbol will be released later
+            s->name = "";
+        }
+    }
 }
 
 int getSymbolSize(const S_SYMBOL *s) {
@@ -145,6 +168,9 @@ int getSymbolSize(const S_SYMBOL *s) {
             return 4;
         case Character:
             return 1;
+        case Boolean:
+            return 1;
+        case Void:
         case Error:
         default:
             yyerror("Impossible to find the size of the symbol %s", s->name);
@@ -152,19 +178,23 @@ int getSymbolSize(const S_SYMBOL *s) {
     }
 }
 
-void printSymbolTable(L_SYMBOL *list) {
-    if (list != NULL) {
-        printf("\n/*********************************************************/\n");
-        printf("Size : %d \n", list->size);
-        printf("-----------------------------------------------------------\n");
-        S_SYMBOL *aux = list->head;
+void printSymbolTable() {
+    if (SymbolTable != NULL) {
+        printf("\n/************************************************************************/\n");
+        printf("Size : %d \n", SymbolTable->size);
+        printf("-------------------------------------------------------------------------\n");
+        S_SYMBOL *aux = SymbolTable->head;
         while (aux != NULL) {
-            printf("Index : %d , varname : %s , address : %d, Type %d , depth %d \n", aux->index, aux->name, aux->addr,
-                   aux->type, aux->depth);
-            printf("-----------------------------------------------------------\n");
+            printf("Index: %d,\tvarname: '%s',\taddress: %d,\tType: %d,\tdepth: %d\n",
+                   aux->index,
+                   (strcmp(aux->name, tmpSymbol) == 0 ? "\x1b[3m\x1b[4mtmp\x1b[0m" : aux->name),
+                   aux->addr,
+                   aux->type,
+                   aux->depth);
+            printf("-------------------------------------------------------------------------\n");
             aux = aux->next;
         }
-        printf("/*********************************************************/\n\n");
+        printf("\n/************************************************************************/\n\n");
     }
 }
 
@@ -173,7 +203,7 @@ S_SYMBOL *getSymbolByName(const char *name) {
     if (SymbolTable != NULL) {
         S_SYMBOL *aux = SymbolTable->head;
         while (aux != NULL && symbol == NULL) {
-            if (strcmp(aux->name, tmpSymbol) != 0) {
+            if (strcmp(aux->name, tmpSymbol) != 0 && strcmp(aux->name, "") != 0) {
                 if (strcmp(name, aux->name) == 0) {
                     symbol = aux;
                 }
@@ -189,7 +219,23 @@ S_SYMBOL *getSymbolByIndex(unsigned int index) {
     if (SymbolTable != NULL) {
         S_SYMBOL *aux = SymbolTable->head;
         while (aux != NULL && symbol == NULL) {
-            if (index == aux->index) {
+            if (strcmp(aux->name, "") != 0) {
+                if (index == aux->index) {
+                    symbol = aux;
+                }
+            }
+            aux = aux->next;
+        }
+    }
+    return symbol;
+}
+
+S_SYMBOL *getLastSymbol(void) {
+    S_SYMBOL *symbol = NULL;
+    if (SymbolTable != NULL) {
+        S_SYMBOL *aux = SymbolTable->head;
+        while (aux != NULL && symbol == NULL) {
+            if (strcmp(aux->name, "") != 0) {
                 symbol = aux;
             }
             aux = aux->next;
