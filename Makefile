@@ -22,6 +22,7 @@ clean:
 	rm -f $(SOURCE_DIR)/syntax.* $(BUILD_DIR)/$(LEX_OUTPUT) $(BUILD_DIR)/$(YACC_OUTPUT).* $(BUILD_DIR)/*.output $(BUILD_DIR)/$(PROG_NAME)
 	$(foreach file, $(SOURCE_FILES), rm -f $(BUILD_DIR)/$(file);)
 	$(foreach file, $(HEADER_FILES), rm -f $(BUILD_DIR)/$(file);)
+	rm -f $(BUILD_DIR)/a.s $(BUILD_DIR)/interpreter.out
 
 lib:
 	$(foreach file, $(SOURCE_FILES), cp $(SOURCE_DIR)/$(file) $(BUILD_DIR)/;)
@@ -38,7 +39,7 @@ lex: $(SOURCE_DIR)/compiler.l yacc
 
 build: clean lib yacc lex
 	cd $(BUILD_DIR)
-	gcc -o $(PROG_NAME) $(LEX_OUTPUT) $(YACC_OUTPUT).c $(SOURCE_FILES) -ll -ly
+	gcc -o $(PROG_NAME) $(LEX_OUTPUT) $(YACC_OUTPUT).c $(SOURCE_FILES) -ll -ly -Wall -Wextra -D_GNU_SOURCE=1 -std=gnu99
 
 run: build
 	$(BUILD_DIR)/$(PROG_NAME) < $(TEST_DIR)/input
