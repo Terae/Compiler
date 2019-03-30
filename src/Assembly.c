@@ -4,6 +4,7 @@
 
 #include "Assembly.h"
 #include "Error.h"
+#include "Symbols.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,23 +61,74 @@ void writeAssembly(const char *line, ...) {
     *buffer = buf2;
 }
 
-void exportAssembly(const char *line, ...) {
+S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2) {
+    S_SYMBOL *result = createTmpSymbol(s1->type);
 
+    writeAssembly("%s %d %d %d", op, result->addr, s1->addr, s2->addr);
+    freeIfTmp(s2);
+    freeIfTmp(s1);
+
+    //int lastIndex = TabSymbol->size - 1;
+    //int addrLeft = getAddrByIndex(TabSymbol, lastIndex - 1);
+    //int addrRight = getAddrByIndex(TabSymbol, lastIndex);
+    //writeAssembly(LOAD" %s %d", r1, addrLeft);
+    //writeAssembly(LOAD" %s %d", r2, addrRight);
+    //writeAssembly("%s %s %s %s", op, r0, r1, r2);
+
+    return result;
 }
 
-void binaryOperation(const char *op, L_SYMBOL *TabSymbol) {
-    int lastIndex = TabSymbol->size - 1;
-    int addrLeft = getAddrByIndex(TabSymbol, lastIndex - 1);
-    int addrRight = getAddrByIndex(TabSymbol, lastIndex);
-    writeAssembly(LOAD" %s %d", r1, addrLeft);
-    writeAssembly(LOAD" %s %d", r2, addrRight);
-    writeAssembly("%s %s %s %s", op, r0, r1, r2);
+S_SYMBOL *negate(S_SYMBOL *s) {
+    S_SYMBOL *zero = createTmpSymbol(Integer);
+
+    writeAssembly(AFC" %d %d", zero->addr, 0);
+    return binaryOperation(EQU, s, zero);
 }
 
-void negate(L_SYMBOL *TabSymbol) {
-    int lastIndex = TabSymbol->size - 1;
-    int addrLeft = getAddrByIndex(TabSymbol, lastIndex);
-    writeAssembly(LOAD" %s %d", r0, addrLeft);
-    writeAssembly(AFC" %s %d", r1, 0);
-    writeAssembly(EQU" %s %s %s", r0, r0, r1);
+S_SYMBOL *toBool(S_SYMBOL *s) {
+    S_SYMBOL *result = negate(negate(s));
+    result->type = Boolean;
+    return result;
+}
+
+S_SYMBOL *modulo(S_SYMBOL *s1, S_SYMBOL *s2) {
+    S_SYMBOL *s1Copy = createTmpSymbol(Integer);
+    S_SYMBOL *s2Copy = createTmpSymbol(Integer);
+    writeAssembly(COP" %d %d", s1Copy->addr, s1->addr);
+    writeAssembly(COP" %d %d", s2Copy->addr, s2->addr);
+
+    S_SYMBOL *tmp = binaryOperation(DIV, s1, s2);
+    S_SYMBOL *result = binaryOperation(MUL, tmp, s2Copy);
+
+    return binaryOperation(SOU, s1Copy, result);
+}
+
+S_SYMBOL *bitnot(S_SYMBOL *s) {
+    // TODO
+    warning("'bitnot' not yet supported.");
+    return NULL;
+}
+
+S_SYMBOL *bitand(S_SYMBOL *s1, S_SYMBOL *s2) {
+    // TODO
+    warning("'bitand' not yet supported.");
+    return NULL;
+}
+
+S_SYMBOL *bitxor(S_SYMBOL *s1, S_SYMBOL *s2) {
+    // TODO
+    warning("'bitxor' not yet supported.");
+    return NULL;
+}
+
+S_SYMBOL *bitor(S_SYMBOL *s1, S_SYMBOL *s2) {
+    // TODO
+    warning("'bitor' not yet supported.");
+    return NULL;
+}
+
+S_SYMBOL *powerOfTwo(S_SYMBOL *s) {
+    // TODO
+    warning("'powerOfTwo' not yet supported.");
+    return NULL;
 }

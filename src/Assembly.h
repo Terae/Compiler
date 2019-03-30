@@ -66,8 +66,22 @@ void closeAssemblyOutput(char const *path);
 
 void writeAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 
-void exportAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
+S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2);
 
-void binaryOperation(const char *op, L_SYMBOL *TabSymbol);
+S_SYMBOL *negate(S_SYMBOL *s);
+
+S_SYMBOL *toBool(S_SYMBOL *s);
+
+S_SYMBOL *modulo(S_SYMBOL *s1, S_SYMBOL *s2);
+
+S_SYMBOL *bitnot(S_SYMBOL *s);
+
+S_SYMBOL *bitand(S_SYMBOL *s1, S_SYMBOL *s2);
+
+S_SYMBOL *bitxor(S_SYMBOL *s1, S_SYMBOL *s2);
+
+S_SYMBOL *bitor(S_SYMBOL *s1, S_SYMBOL *s2);
+
+S_SYMBOL *powerOfTwo(S_SYMBOL *s);
 
 #endif //COMPILER_ASSEMBLY_H
