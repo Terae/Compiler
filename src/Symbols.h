@@ -5,48 +5,59 @@
 #ifndef AUL_SYMBOLS_H
 #define AUL_SYMBOLS_H
 
-enum T_Type {
-	Integer=4,
-	Character=1,
-	Error=0
-};
+#define MAX_DEPTH 128
+
+typedef unsigned int address_t;
+
+typedef enum T_Type {
+    Integer,
+    Character,
+    Error
+} T_Type;
 
 typedef struct Symbol {
-		int index;
-    int addr;
-    char *  name;
+    int index;
+    address_t addr;
+    char *name;
     enum T_Type type;
     /*int isConst;
     int isInitialized;*/
-    int depth;
-    struct Symbol * next;
+    unsigned int depth;
+    struct Symbol *next;
 } S_SYMBOL;
 
-typedef struct ListSymbol{
-  unsigned int size;
-  S_SYMBOL * head;
+typedef struct ListSymbol {
+    unsigned int size;
+    unsigned int depth;
+    S_SYMBOL *head;
 } L_SYMBOL;
 
-L_SYMBOL * createListSymbol();
+void initSymbolTable(void);
 
-int addSymbol(L_SYMBOL * list, char * name, enum T_Type type, int depth, int addr);
+void resetSymbolTable(void);
 
-void freeList(L_SYMBOL * list);
+S_SYMBOL *createSymbol(const char *name, T_Type type);
 
-int popHead(L_SYMBOL * list);
+void popHead(void);
 
-int popDepth(L_SYMBOL * list, int depth);
+void pushBlock(void);
 
-int popTmp(L_SYMBOL * list);
+void popBlock(void);
 
-void printTable(L_SYMBOL * list);
+/// Temporary variables manipulation
+S_SYMBOL *createTmpSymbol(T_Type type);
 
-S_SYMBOL * getSymbolByName(L_SYMBOL * list, char * name);
+void popTmp(void);
 
-int getAddrByName(L_SYMBOL * list, char * name);
+/// Meta-data of symbols
+int isTmp(S_SYMBOL *s);
 
-int getAddrByIndex(L_SYMBOL * list, int index);
+int getSymbolSize(const S_SYMBOL *s);
 
-int IsAlreadyIn(L_SYMBOL * list, char * name);
+void printSymbolTable(L_SYMBOL *list);
+
+S_SYMBOL *getSymbolByName(const char *name);
+
+S_SYMBOL *getSymbolByIndex(unsigned int index);
 
 #endif //AUL_SYMBOLS_H
