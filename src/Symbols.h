@@ -66,4 +66,5 @@ S_SYMBOL *getSymbolByIndex(unsigned int index);
 
 S_SYMBOL *getLastSymbol(void);
 
+int popHeadTemp(L_SYMBOL * list);
 #endif //AUL_SYMBOLS_H

@@ -89,6 +89,23 @@ S_SYMBOL *createSymbol(const char *name, T_Type type) {
     return symbol;
 }
 
+
+int popHeadTemp(L_SYMBOL * list){
+	int sizePoped = 0;
+  if (list != NULL) {
+    if (list->head != NULL) {
+      S_SYMBOL *aux = list->head;
+      if (strcmp(aux->name,"")==0){
+				sizePoped = (int)aux->type;
+	      list->head = aux->next;
+      	freeSymbol(aux);
+      	list->size -= 1;
+			}
+    }
+  }
+  return sizePoped;
+}
+
 /**
  * @description Pop last element and all intermediate temporary values
  */
