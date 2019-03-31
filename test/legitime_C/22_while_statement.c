@@ -1,4 +1,7 @@
 int main() {
+    // tmp: function declaration
+    int function;
+
     while(true) { }
 
     while(function(5)) {

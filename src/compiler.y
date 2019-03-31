@@ -141,10 +141,10 @@ ExternalDeclaration : FunctionDefinition
 FunctionDefinition : FinalType tID '(' Params ')' FunctionStatementCompound
                    | FinalType tID '(' Params ')' End;
 
-TypeSpecifier : tINT  { type_var = Integer; }
-              | tVOID { type_var = Void; }
-              | tCHAR { type_var = Character; }
-              | tBOOL { type_var = Boolean; };
+TypeSpecifier : tINT  { $$ = type_var = Integer; }
+              | tVOID { $$ = type_var = Void; }
+              | tCHAR { $$ = type_var = Character; }
+              | tBOOL { $$ = type_var = Boolean; };
 
 TypeQualifier : tCONST;
 
@@ -498,7 +498,7 @@ int main(int argc, char const **argv) {
     resetSymbolTable();
 
     if(errorsOccured() > 0) {
-        fprintf(stderr, "%d errors occured during compilation, which is aborted.", errorsOccured());
+        fprintf(stderr, "\x1b[0m\x1b[41m%d errors occured during compilation, which is aborted.\x1b[0m\n", errorsOccured());
         return FAILURE_COMPILATION;
     }
 

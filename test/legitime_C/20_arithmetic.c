@@ -1,4 +1,7 @@
 int main() {
+    // tmp: declaration of functions ID
+    int function, other_function, variable, var, toto;
+
     int a;
     a = 2;
     int b = 5;

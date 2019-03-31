@@ -1,6 +1,6 @@
 int f1(int, char, const int ** const*);
-int f2(int a);
-int **f3(int var, const char value) {
+int f2(int arg);
+int **f3(int var, const char ch) {
     int a;
     int b = 5;
     int c, d = 8;
