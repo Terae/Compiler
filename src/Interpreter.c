@@ -27,9 +27,9 @@
 
 #define EQU   0x9
 #define INF   0xA
-#define INFE  0xB
-#define SUP   0xC
-#define SUPE  0xD
+// #define INFE  0xB
+// #define SUP   0xC
+// #define SUPE  0xD
 
 #define JMP   0xE
 #define JMPC  0xF
@@ -212,7 +212,7 @@ void interprete(const char *path) {
                 *get_memory(arg1) = *get_memory(arg2) < *get_memory(arg3);
                 break;
             }
-            case INFE: {
+            /*case INFE: {
                 READ_THREE(STRINGIFY(INFE));
                 *get_memory(arg1) = *get_memory(arg2) <= *get_memory(arg3);
                 break;
@@ -226,7 +226,7 @@ void interprete(const char *path) {
                 READ_THREE(STRINGIFY(SUPE));
                 *get_memory(arg1) = *get_memory(arg2) >= *get_memory(arg3);
                 break;
-            }
+            }*/
             case JMP: {
                 READ_ONE(STRINGIFY(JWP));
                 pc = arg1;

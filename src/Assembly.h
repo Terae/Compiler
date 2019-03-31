@@ -27,9 +27,9 @@
 
     #define EQU   "EQU"   // 0x09
     #define INF   "INF"   // 0x0A
-    #define INFE  "INFE"  // 0x0B
-    #define SUP   "SUP"   // 0x0C
-    #define SUPE  "SUPE"  // 0x0D
+    // #define INFE  "INFE"  // 0x0B
+    // #define SUP   "SUP"   // 0x0C
+    // #define SUPE  "SUPE"  // 0x0D
 
     #define JMP   "JMP"   // 0x0E
     #define JMPC  "JMPC"  // 0x0F
@@ -52,9 +52,9 @@
 
     #define EQU   "9"
     #define INF   "A"
-    #define INFE  "B"
-    #define SUP   "C"
-    #define SUPE  "D"
+    // #define INFE  "B"
+    // #define SUP   "C"
+    // #define SUPE  "D"
 
     #define JMP   "E"
     #define JMPC  "F"
