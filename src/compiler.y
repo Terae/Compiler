@@ -179,7 +179,7 @@ Declaration : FinalType TypedDeclaration;
 ParamsNamedList :                     ParamNamed
                 | ParamsNamedList ',' ParamNamed;
 
-ParamNamed : FinalType tID;
+ParamNamed : FinalType tID { addVarWithType($2, $1); };
 
 // int, char, ...
 ParamsUnnamedList :                       ParamUnnamed
@@ -203,7 +203,7 @@ Constant : tNBR {
                  }
          | tSTRING_LITERAL
                  {
-                         warning("The present compiler is not able to manage strings: %s. Transforming it into %d.", $1, (int)($1[0]));
+                         warning("The present compiler is not able to manage strings: %s. Transforming it into '%d'.", $1, $1[0]);
                          S_SYMBOL *symbol = addVarWithType("", Character);
                          writeAssembly(AFC" %d %d", symbol->addr, (int)($1[0]));
                  }

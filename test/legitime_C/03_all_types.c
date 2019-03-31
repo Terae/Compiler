@@ -12,9 +12,7 @@ int main() {
     char const ***k;
     char l = 'a';
     char m, n, o = 'o', p = 'p';
-    void q;
-    void *r;
-    char s = '$';
+    char q = '$';
     char *str = "I am a string recognized as\t\t\n  \t\ta string!";
     int bool_1 = true;
     int bool_2 = false;

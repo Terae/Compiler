@@ -93,7 +93,6 @@ S_SYMBOL *createSymbol(const char *name, T_Type type) {
  * @description Pop last element and all intermediate temporary values
  */
 void popHead() {
-    int count = 0;
     if (SymbolTable != NULL && SymbolTable->head != NULL) {
         do {
             S_SYMBOL *aux = SymbolTable->head;
@@ -178,6 +177,21 @@ int getSymbolSize(const S_SYMBOL *s) {
     }
 }
 
+char *typeToString(T_Type type) {
+    switch (type) {
+        case Integer:
+            return "int";
+        case Character:
+            return "char";
+        case Boolean:
+            return "bool";
+        case Void:
+            return "void";
+        default:
+            return "_error";
+    }
+}
+
 void printSymbolTable() {
     if (SymbolTable != NULL) {
         printf("\n/************************************************************************/\n");
@@ -185,11 +199,11 @@ void printSymbolTable() {
         printf("-------------------------------------------------------------------------\n");
         S_SYMBOL *aux = SymbolTable->head;
         while (aux != NULL) {
-            printf("Index: %d,\tvarname: '%s',\taddress: %d,\tType: %d,\tdepth: %d\n",
+            printf("Index: %d,\tvarname: '%s',\taddress: %d,\tType: %s,\tdepth: %d\n",
                    aux->index,
                    (strcmp(aux->name, tmpSymbol) == 0 ? "\x1b[3m\x1b[4mtmp\x1b[0m" : aux->name),
                    aux->addr,
-                   aux->type,
+                   typeToString(aux->type),
                    aux->depth);
             printf("-------------------------------------------------------------------------\n");
             aux = aux->next;
