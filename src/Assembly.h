@@ -68,6 +68,10 @@ void writeAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__
 
 S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2);
 
+S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *value);
+
+void affectation(S_SYMBOL *id, S_SYMBOL *value);
+
 S_SYMBOL *negate(S_SYMBOL *s);
 
 S_SYMBOL *toBool(S_SYMBOL *s);

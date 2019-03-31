@@ -78,6 +78,27 @@ S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2) {
     return result;
 }
 
+S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *value) {
+    if (isTmp(id)) {
+        yyerror("Impossible to assign the result to a rvalue.");
+        return NULL;
+    }
+
+    writeAssembly("%s %d %d %d", op, id->addr, id->addr, value->addr);
+    freeIfTmp(value);
+    return id;
+}
+
+void affectation(S_SYMBOL *id, S_SYMBOL *value) {
+    if (isTmp(id)) {
+        yyerror("Impossible to assign the result to a rvalue.");
+        return;
+    }
+
+    writeAssembly(COP" %d %d ; %s", id->addr, value->addr, id->name);
+    freeIfTmp(value);
+}
+
 S_SYMBOL *negate(S_SYMBOL *s) {
     S_SYMBOL *zero = createTmpSymbol(Integer);
 

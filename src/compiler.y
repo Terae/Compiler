@@ -251,7 +251,7 @@ ExpressionPostfix : ExpressionPrimary
                                 S_SYMBOL *one = addVarWithType("", Integer);
                                 writeAssembly(AFC" %d 1", one->addr);
 
-                                binaryOperation(ADD, left, one);
+                                binaryOperationAssignment(ADD, $1, one);
                                 $$ = copy;
                         }
                   | ExpressionPostfix tDECR
@@ -262,7 +262,7 @@ ExpressionPostfix : ExpressionPrimary
                                 S_SYMBOL *one = addVarWithType("", Integer);
                                 writeAssembly(AFC" %d 1", one->addr);
 
-                                binaryOperation(SOU, left, one);
+                                binaryOperationAssignment(SOU, $1, one);
                                 $$ = copy;
                         };
 
@@ -274,13 +274,13 @@ ExpressionUnary : ExpressionPostfix
                         {
                                 S_SYMBOL *one = addVarWithType("", Integer);
                                 writeAssembly(AFC" %d 1", one->addr);
-                                $$ = binaryOperation(ADD, $2, one);
+                                $$ = binaryOperationAssignment(ADD, $2, one);
                         }
                 | tDECR   ExpressionUnary
                         {
                                 S_SYMBOL *one = addVarWithType("", Integer);
                                 writeAssembly(AFC" %d 1", one->addr);
-                                $$ = binaryOperation(SOU, $2, one);
+                                $$ = binaryOperationAssignment(SOU, $2, one);
                         }
                 | tSIZEOF ExpressionUnary
                         {
@@ -417,19 +417,57 @@ ExpressionConditional : ExpressionLogicalOr
 
 // Assignment operators ('=', '<<=', '>>=', '+=', '-=', '*=', '/=', '%=', '&=', '^=', '|=')
 ExpressionAssignment : ExpressionConditional
-                     | ExpressionUnary AssignmentOperator ExpressionAssignment;
-
-AssignmentOperator : '='
-                   | tRIGHT_ASSIGN
-                   | tLEFT_ASSIGN
-                   | tADD_ASSIGN
-                   | tSUB_ASSIGN
-                   | tMUL_ASSIGN
-                   | tDIV_ASSIGN
-                   | tMOD_ASSIGN
-                   | tAND_ASSIGN
-                   | tXOR_ASSIGN
-                   | tOR_ASSIGN;
+                     | ExpressionUnary '=' ExpressionAssignment
+                        {
+                                affectation($1, $3);
+                                $$ = $1;
+                        }
+                     | ExpressionUnary tRIGHT_ASSIGN ExpressionAssignment
+                        {
+                                S_SYMBOL *tmp = powerOfTwo($3);
+                                $$ = binaryOperationAssignment(DIV, $1, tmp);
+                        }
+                     | ExpressionUnary tLEFT_ASSIGN ExpressionAssignment
+                        {
+                                S_SYMBOL *tmp = powerOfTwo($3);
+                                $$ = binaryOperationAssignment(MUL, $1, tmp);
+                        }
+                     | ExpressionUnary tADD_ASSIGN ExpressionAssignment
+                        {
+                                $$ = binaryOperationAssignment(ADD, $1, $3);
+                        }
+                     | ExpressionUnary tSUB_ASSIGN ExpressionAssignment
+                        {
+                                $$ = binaryOperationAssignment(SOU, $1, $3);
+                        }
+                     | ExpressionUnary tMUL_ASSIGN ExpressionAssignment
+                        {
+                                $$ = binaryOperationAssignment(MUL, $1, $3);
+                        }
+                     | ExpressionUnary tDIV_ASSIGN ExpressionAssignment
+                        {
+                                $$ = binaryOperationAssignment(DIV, $1, $3);
+                        }
+                     | ExpressionUnary tMOD_ASSIGN ExpressionAssignment
+                        {
+                                affectation($1, modulo($1, $3));
+                                $$ = $1;
+                        }
+                     | ExpressionUnary tAND_ASSIGN ExpressionAssignment
+                        {
+                                affectation($1, bitand($1, $3));
+                                $$ = $1;
+                        }
+                     | ExpressionUnary tXOR_ASSIGN ExpressionAssignment
+                        {
+                                affectation($1, bitxor($1, $3));
+                                $$ = $1;
+                        }
+                     | ExpressionUnary tOR_ASSIGN ExpressionAssignment
+                        {
+                                affectation($1, bitor($1, $3));
+                                $$ = $1;
+                        };
 
 Expression :                ExpressionAssignment
            | Expression ',' ExpressionAssignment;
