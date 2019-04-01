@@ -130,7 +130,7 @@ End : error ';'
                 // yyerrok();
                 // enableErrorReporting();
         }
-    | ';' { popTmp(); };
+    | ';' { popAllTmp(); };
 
 Program :         ExternalDeclaration
         | Program ExternalDeclaration;

@@ -40,6 +40,7 @@ void resetSymbolTable(void);
 
 S_SYMBOL *createSymbol(const char *name, T_Type type);
 
+
 void popHead(void);
 
 void pushBlock(void);
@@ -49,7 +50,9 @@ void popBlock(void);
 /// Temporary variables manipulation
 S_SYMBOL *createTmpSymbol(T_Type type);
 
-void popTmp(void);
+void popAllTmp(void);
+
+void popOneTmp(void);
 
 /// Meta-data of symbols
 int isTmp(S_SYMBOL *s);
@@ -66,5 +69,5 @@ S_SYMBOL *getSymbolByIndex(unsigned int index);
 
 S_SYMBOL *getLastSymbol(void);
 
-int popHeadTemp(L_SYMBOL * list);
 #endif //AUL_SYMBOLS_H
+
