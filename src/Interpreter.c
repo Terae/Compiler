@@ -2,10 +2,11 @@
 // Created by terae on 29/03/19.
 //
 
+#include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #define DEBUG
 
@@ -78,6 +79,28 @@ void error_read(const char *op, int expected, int got) {
 #define READ_ONE(OP)   { int got = sscanf(line, "%d",       &arg1);               if(got != 1) { error_read(OP, 1, got); } }
 #define READ_TWO(OP)   { int got = sscanf(line, "%d %d",    &arg1, &arg2);        if(got != 2) { error_read(OP, 2, got); } }
 #define READ_THREE(OP) { int got = sscanf(line, "%d %d %d", &arg1, &arg2, &arg3); if(got != 3) { error_read(OP, 3, got); } }
+
+void debug_print_memory(int pc) {
+#if defined(DEBUG)
+    printf("Line: %d\nStackPointer: %d\n", pc + 1, sp);
+
+    for (int i = 0; i < 50; ++i) {
+        printf("\tmemory[%d]: %d\n", i + 4000, memory[i + 4000]);
+    }
+#endif
+}
+
+void debug_print_op(const char *op, const char *msg, ...) {
+#if defined(DEBUG)
+    va_list args;
+
+    va_start(args, msg);
+    printf("Operation '%s':\t", op);
+    vprintf(msg, args);
+    fputc('\n', stdout);
+    va_end(args);
+#endif
+}
 
 /// @return The size of the given file
 size_t get_file_size(FILE *file) {
@@ -152,64 +175,67 @@ void interprete(const char *path) {
         op = hexa_to_int(line[0]);
         line++;
 
-#if defined(DEBUG)
-        printf("Line: %d\nStackPointer: %d\n", pc + 1, sp);
-
-        for (int i = 0; i < 50; ++i) {
-            printf("\tmemory[%d]: %d\n", i, memory[i]);
-        }
-        fputc('\n', stdout);
-#endif
+        debug_print_memory(pc);
 
         switch (op) {
             case ADD: {
                 READ_THREE(STRINGIFY(ADD));
                 *get_memory(arg1) = *get_memory(arg2) + *get_memory(arg3);
+                debug_print_op(STRINGIFY(ADD), "@%d <- @%d + @%d", arg1, arg2, arg3);
                 break;
             }
             case MUL: {
                 READ_THREE(STRINGIFY(MUL));
                 *get_memory(arg1) = *get_memory(arg2) * *get_memory(arg3);
+                debug_print_op(STRINGIFY(MUL), "@%d <- @%d * @%d", arg1, arg2, arg3);
                 break;
             }
             case SOU: {
                 READ_THREE(STRINGIFY(SOU));
                 *get_memory(arg1) = *get_memory(arg2) - *get_memory(arg3);
+                debug_print_op(STRINGIFY(SOU), "@%d <- @%d - @%d", arg1, arg2, arg3);
                 break;
             }
             case DIV: {
                 READ_THREE(STRINGIFY(DIV));
                 *get_memory(arg1) = *get_memory(arg2) / *get_memory(arg3);
+                debug_print_op(STRINGIFY(DIV), "@%d <- @%d / @%d", arg1, arg2, arg3);
                 break;
             }
             case COP: {
                 READ_TWO(STRINGIFY(COP));
                 *get_memory(arg1) = *get_memory(arg2);
+                debug_print_op(STRINGIFY(COP), "@%d <- @%d", arg1, arg2);
                 break;
             }
             case AFC: {
                 READ_TWO(STRINGIFY(AFC));
                 *get_memory(arg1) = arg2;
+                debug_print_op(STRINGIFY(AFC), "@%d <- %d", arg1, arg2);
                 break;
             }
             case LOAD: {
                 READ_TWO(STRINGIFY(LOAD));
                 *get_memory(arg1) = memory[*get_memory(arg2)];
+                debug_print_op(STRINGIFY(LOAD), "@%d <- mem[@%d]", arg1, arg2);
                 break;
             }
             case STORE: {
                 READ_TWO(STRINGIFY(STORE));
                 memory[*get_memory(arg1)] = *get_memory(arg2);
+                debug_print_op(STRINGIFY(STORE), "mem[@%d] <- @%d", arg1, arg2);
                 break;
             }
             case EQU: {
                 READ_THREE(STRINGIFY(EQU));
                 *get_memory(arg1) = *get_memory(arg2) == *get_memory(arg3);
+                debug_print_op(STRINGIFY(EQU), "@%d <- @%d == @%d", arg1, arg2, arg3);
                 break;
             }
             case INF: {
                 READ_THREE(STRINGIFY(INF));
                 *get_memory(arg1) = *get_memory(arg2) < *get_memory(arg3);
+                debug_print_op(STRINGIFY(INF), "@%d <- @%d < @%d", arg1, arg2, arg3);
                 break;
             }
             /*case INFE: {
@@ -230,18 +256,19 @@ void interprete(const char *path) {
             case JMP: {
                 READ_ONE(STRINGIFY(JWP));
                 pc = arg1;
+                debug_print_op(STRINGIFY(JMP), "PC <- %d", arg1);
                 continue;
             }
             case JMPC: {
-                /*READ_TWO(STRINGIFY(JMPC));
+                READ_TWO(STRINGIFY(JMPC));
                 if(*get_memory(arg2) == 0) {
                     pc = arg1;
+                    debug_print_op(STRINGIFY(JMPC), "PC <- %d (@%d == 0)", arg1, arg2);
                     continue;
                 }
-                break;*/
+                break;
                 READ_ONE(STRINGIFY(JMPC));
-                printf("%d", *get_memory(arg1));
-                fflush(stdout);
+                debug_print_op(STRINGIFY(JMPC), "no jump (@%d == %d != 0)", arg2, *get_memory(arg2));
                 break;
             }
             default: {
