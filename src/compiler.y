@@ -56,6 +56,9 @@
 %token <string> tCHAR_LITERAL
 %token <string> tSTRING_LITERAL
 
+%type <nbr> tDO
+%type <nbr> '('
+%type <nbr> ')'
 %type <symbol> Constant
 %type <symbol> ExpressionPrimary
 %type <symbol> ExpressionPostfix
@@ -503,12 +506,14 @@ StatementExpression : End
                     | Expression End
                     | tPRINTF '(' Expression ')' End;
 
-StatementSelection : tIF '(' Expression ')' { writeAssembly(LOAD" %s %d", r0, $3->addr); writeAssembly(JMPC" NULL %s", r0); $2 = count_assembly; } Statement { $4 = count_assembly; patchJumpAssembly($2, $4); } %prec EndIf
-                   | tIF '(' Expression ')' { writeAssembly(LOAD" %s %d", r0, $3->addr); writeAssembly(JMPC" NULL %s", r0); $2 = count_assembly; } Statement { $4 = count_assembly; patchJumpAssembly($2, $4); writeAssembly(JMP" NULL"); } tELSE Statement { patchJumpAssembly($4, count_assembly);}
+IfActionFactor: { writeAssembly(LOAD" %s %d", r0, ($<symbol>-1)->addr); writeAssembly(JMPC" NULL %s", r0); ($<nbr>-2) = count_assembly; };
+
+StatementSelection : tIF '(' Expression ')' IfActionFactor Statement { $4 = count_assembly; patchJumpAssembly($2, $4); } %prec EndIf 
+                   | tIF '(' Expression ')' IfActionFactor Statement tELSE { $4 = count_assembly; patchJumpAssembly($2, $4); writeAssembly(JMP" NULL"); } Statement { patchJumpAssembly($4, count_assembly);}
                    | tSWITCH '(' Expression ')' Statement;
 
 StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expression ')' { writeAssembly(LOAD" %s %d", r0, $4->addr); writeAssembly(EQU" %s 0", r0); writeAssembly(JMPC" NULL %s", r0); $5 = count_assembly; } Statement { patchJumpAssembly($5, count_assembly); writeAssembly(JMP" %d", $2); }
-                   | tDO { $1 = count_assembly; } Statement tWHILE '(' Expression ')' { writeAssembly(LOAD" %s %d", r0, $7->addr); writeAssembly(JMPC" %s %s", $1, r0); }  End
+                   | tDO { $1 = count_assembly; } Statement tWHILE '(' Expression ')' { writeAssembly(LOAD" %s %d", r0, $6->addr); writeAssembly(JMPC" %s %s", $1, r0); }  End
                    | tFOR '(' StatementExpression StatementExpression            ')' Statement
                    | tFOR '(' StatementExpression StatementExpression Expression ')' Statement
                    | tFOR '(' Declaration         StatementExpression            ')' Statement
