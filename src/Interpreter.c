@@ -84,6 +84,7 @@ void debug_print_memory(int pc) {
 #if defined(DEBUG)
     printf("Line: %d\nStackPointer: %d\n", pc + 1, sp);
 
+    printf("r0: %d\nr1: %d\nr2: %d\n", memory[0], memory[1], memory[2]);
     for (int i = 0; i < 50; ++i) {
         printf("\tmemory[%d]: %d\n", i + 4000, memory[i + 4000]);
     }
@@ -261,7 +262,7 @@ void interprete(const char *path) {
             }
             case JMPC: {
                 READ_TWO(STRINGIFY(JMPC));
-                if(*get_memory(arg2) == 0) {
+                if(*get_memory(arg2) != 0) {
                     pc = arg1;
                     debug_print_op(STRINGIFY(JMPC), "PC <- %d (@%d == 0)", arg1, arg2);
                     continue;

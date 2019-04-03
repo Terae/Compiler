@@ -23,6 +23,7 @@ static FILE *output = NULL;
 } Assembly[MAX_ASSEMBLY_SIZE];
 static int assembly_count = 0;*/
 static char *bufferAssembly = NULL;
+static const char *REPLACE_JUMP = "NULL";
 
 void initAssemblyOutput(const char *path) {
     output = fopen(path, "w");
@@ -63,7 +64,41 @@ void writeAssembly(const char *line, ...) {
     count_assembly++;
 }
 
-void patchJumpAssembly(int assembly_line, int patch_addr);
+char *getNthOccurence(char *str, char c, int n) {
+    char *result = NULL;
+
+    while(str != NULL && result == NULL) {
+        if(n-- == 0) {
+            result = str;
+        }
+        str = strchr(str, c) + 1;
+    }
+    return result;
+}
+
+void strreplace(char *src, const char *str, const char *rep) {
+    char *p = strstr(src, str);
+    if (p) {
+        size_t len = strlen(src) + strlen(rep) - strlen(str);
+        char r[len];
+        memset(r, 0, len);
+        if (p >= src) {
+            strncpy(r, src, p - src);
+            r[p - src] = '\0';
+            strncat(r, rep, strlen(rep));
+            strncat(r, p + strlen(str), p + strlen(str) - src + strlen(src));
+            strcpy(src, r);
+            strreplace(p + strlen(rep), str, rep);
+        }
+    }
+}
+
+void patchJumpAssembly(int assembly_line, int patch_addr) {
+    char *line = getNthOccurence(bufferAssembly, '\n', assembly_line);
+    char str[12];
+    sprintf(str, "%d", patch_addr);
+    strreplace(line, REPLACE_JUMP, str);
+}
 
 S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2) {
     S_SYMBOL *result = createTmpSymbol(s1->type);
