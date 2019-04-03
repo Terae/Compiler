@@ -55,6 +55,6 @@ test: build
 interpreter: $(SOURCE_DIR)/Interpreter.c
 	gcc -g $(SOURCE_DIR)/Interpreter.c -o $(BUILD_DIR)/interpreter.out
 
-all: build run
+all: build interpreter run
 
 $(V).SILENT:

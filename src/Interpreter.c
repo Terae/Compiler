@@ -279,6 +279,9 @@ void interprete(const char *path) {
         pc++;
     }
 
+    printf("\n\n=== END OF PROGRAM ===\nFinal memory state:");
+    debug_print_memory(pc);
+
     free(memory);
     free(assembly_source);
 }

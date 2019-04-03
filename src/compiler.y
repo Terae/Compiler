@@ -13,6 +13,7 @@
     #define YYERROR_VERBOSE
 
     extern int const count_line;
+    int count_assembly;
 
     int yylex(void);
 
@@ -502,14 +503,12 @@ StatementExpression : End
                     | Expression End
                     | tPRINTF '(' Expression ')' End;
 
-StatementSelection : tIF CondIf Statement %prec EndIf
-                   | tIF CondIf Statement tELSE Statement
-                   | tSWITCH CondIf Statement;
+StatementSelection : tIF '(' Expression ')' { writeAssembly(LOAD" %s %d", r0, $3->addr); writeAssembly(JMPC" NULL %s", r0); $2 = count_assembly; } Statement { $4 = count_assembly; patchJumpAssembly($2, $4); } %prec EndIf
+                   | tIF '(' Expression ')' { writeAssembly(LOAD" %s %d", r0, $3->addr); writeAssembly(JMPC" NULL %s", r0); $2 = count_assembly; } Statement { $4 = count_assembly; patchJumpAssembly($2, $4); writeAssembly(JMP" NULL"); } tELSE Statement { patchJumpAssembly($4, count_assembly);}
+                   | tSWITCH '(' Expression ')' Statement;
 
-CondIf : '(' Expression ')';
-
-StatementIteration :               tWHILE '(' Expression ')' Statement
-                   | tDO Statement tWHILE '(' Expression ')' End
+StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expression ')' { writeAssembly(LOAD" %s %d", r0, $4->addr); writeAssembly(EQU" %s 0", r0); writeAssembly(JMPC" NULL %s", r0); $5 = count_assembly; } Statement { patchJumpAssembly($5, count_assembly); writeAssembly(JMP" %d", $2); }
+                   | tDO { $1 = count_assembly; } Statement tWHILE '(' Expression ')' { writeAssembly(LOAD" %s %d", r0, $7->addr); writeAssembly(JMPC" %s %s", $1, r0); }  End
                    | tFOR '(' StatementExpression StatementExpression            ')' Statement
                    | tFOR '(' StatementExpression StatementExpression Expression ')' Statement
                    | tFOR '(' Declaration         StatementExpression            ')' Statement

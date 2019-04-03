@@ -32,6 +32,7 @@ void initAssemblyOutput(const char *path) {
     }
     bufferAssembly = malloc(1);
     bufferAssembly[0] = '\0';
+    count_assembly = 0;
 }
 
 void closeAssemblyOutput(const char *path) {
@@ -59,12 +60,19 @@ void writeAssembly(const char *line, ...) {
 
     va_end(args);
     *buffer = buf2;
+    count_assembly++;
 }
+
+void patchJumpAssembly(int assembly_line, int patch_addr);
 
 S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2) {
     S_SYMBOL *result = createTmpSymbol(s1->type);
 
-    writeAssembly("%s %d %d %d", op, result->addr, s1->addr, s2->addr);
+    writeAssembly(LOAD" %s %d", r1, s1->addr);
+    writeAssembly(LOAD" %s %d", r2, s2->addr);
+    writeAssembly("%s %s %s %s", op, r0, r1, r2);
+    writeAssembly(STORE" %d %s", result->addr, r0);
+    //writeAssembly("%s %d %d %d", op, result->addr, s1->addr, s2->addr);
     freeIfTmp(s2);
     freeIfTmp(s1);
 
@@ -84,6 +92,8 @@ S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *valu
         return NULL;
     }
 
+    writeAssembly(LOAD" %s %d", r1, id->addr);
+    writeAssembly(LOAD" %s %d", r2, value->addr);
     writeAssembly("%s %d %d %d", op, id->addr, id->addr, value->addr);
     freeIfTmp(value);
     return id;

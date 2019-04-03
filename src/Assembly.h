@@ -7,7 +7,9 @@
 
 #include "Symbols.h"
 
-//#define TEXT_ASSEMBLY
+extern int count_assembly;
+
+#define TEXT_ASSEMBLY
 
 #if defined(TEXT_ASSEMBLY)
 
@@ -65,6 +67,8 @@ void initAssemblyOutput(const char *path);
 void closeAssemblyOutput(char const *path);
 
 void writeAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
+
+void patchJumpAssembly(int assembly_line, int patch_addr);
 
 S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2);
 
