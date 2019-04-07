@@ -242,7 +242,7 @@ ExpressionPostfix : ExpressionPrimary
                                 writeDebug("postfix increment");
                                 S_SYMBOL *left = $1; // getLastSymbol();
                                 S_SYMBOL *copy = addVarWithType("", left->type);
-                                writeAssembly(COP" %d %d", copy->addr, left->addr);
+                                writeAssembly(COP" %d, %d", copy->addr, left->addr);
                                 S_SYMBOL *one = createConstant(Integer, 1);
 
                                 binaryOperationAssignment(ADD, $1, one);
@@ -253,7 +253,7 @@ ExpressionPostfix : ExpressionPrimary
                                 writeDebug("postfix decrement");
                                 S_SYMBOL *left = $1; // getLastSymbol();
                                 S_SYMBOL *copy = addVarWithType("", left->type);
-                                writeAssembly(COP" %d %d", copy->addr, left->addr);
+                                writeAssembly(COP" %d, %d", copy->addr, left->addr);
                                 S_SYMBOL *one = createConstant(Integer, 1);
 
                                 binaryOperationAssignment(SOU, $1, one);
@@ -506,14 +506,14 @@ StatementExpression : End
                     | Expression End
                     | tPRINTF '(' Expression ')' End;
 
-StatementSelectionFactor: { writeDebug("IF"); writeAssembly(LOAD" %s %d", r0, ($<symbol>-1)->addr); ($<nbr>-2) = count_assembly; writeAssembly(JMPC" NULL %s", r0); };
+StatementSelectionFactor: { writeDebug("IF"); writeAssembly(LOAD" %s, %d", r0, ($<symbol>-1)->addr); ($<nbr>-2) = count_assembly; writeAssembly(JMPC" NULL, %s", r0); };
 
 StatementSelection : tIF '(' Expression ')' StatementSelectionFactor Statement       { $4 = count_assembly; patchJumpAssembly($2, $4); } %prec EndIf
                    | tIF '(' Expression ')' StatementSelectionFactor Statement tELSE { $4 = count_assembly; patchJumpAssembly($2, $4 + 1); writeAssembly(JMP" NULL"); writeDebug("ELSE"); } Statement { patchJumpAssembly($4, count_assembly);}
                    | tSWITCH '(' Expression ')' Statement;
 
-StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expression ')' { writeDebug("WHILE"); writeAssembly(LOAD" %s %d", r1, $4->addr); writeAssembly(AFC" %s 0", r2); writeAssembly(EQU" %s %s %s", r0, r1, r2); $5 = count_assembly; writeAssembly(JMPC" NULL %s", r0); } Statement { writeAssembly(JMP" %d", $2); patchJumpAssembly($5, count_assembly); }
-                   | tDO { writeDebug("DO"); $1 = count_assembly; } Statement tWHILE '(' Expression ')' { writeAssembly("WHILE"); writeAssembly(LOAD" %s %d", r1, $6->addr); writeAssembly(AFC" %s 0", r2); writeAssembly(EQU" %s %s %s", r0, r1, r2); writeAssembly(JMPC" %s %s", $1, r0); }  End
+StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expression ')' { writeDebug("WHILE"); writeAssembly(LOAD" %s, %d", r1, $4->addr); writeAssembly(AFC" %s, 0", r2); writeAssembly(EQU" %s, %s, %s", r0, r1, r2); $5 = count_assembly; writeAssembly(JMPC" NULL, %s", r0); } Statement { writeAssembly(JMP" %d", $2); patchJumpAssembly($5, count_assembly); }
+                   | tDO { writeDebug("DO"); $1 = count_assembly; } Statement tWHILE '(' Expression ')' { writeDebug("WHILE"); writeAssembly(LOAD" %s, %d", r1, $6->addr); writeAssembly(AFC" %s, 0", r2); writeAssembly(EQU" %s, %s, %s", r0, r1, r2); writeAssembly(JMPC" %s, %s", $1, r0); }  End
                    | tFOR '(' StatementExpression StatementExpression            ')' Statement
                    | tFOR '(' StatementExpression StatementExpression Expression ')' Statement
                    | tFOR '(' Declaration         StatementExpression            ')' Statement

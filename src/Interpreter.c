@@ -78,8 +78,8 @@ void error_read(const char *op, int expected, int got) {
 }
 
 #define READ_ONE(OP)   { int got = sscanf(line, "%hu",         &arg1);               if(got != 1) { error_read(OP, 1, got); } }
-#define READ_TWO(OP)   { int got = sscanf(line, "%hu %hu",     &arg1, &arg2);        if(got != 2) { error_read(OP, 2, got); } }
-#define READ_THREE(OP) { int got = sscanf(line, "%hu %hu %hu", &arg1, &arg2, &arg3); if(got != 3) { error_read(OP, 3, got); } }
+#define READ_TWO(OP)   { int got = sscanf(line, "%hu, %hu",     &arg1, &arg2);        if(got != 2) { error_read(OP, 2, got); } }
+#define READ_THREE(OP) { int got = sscanf(line, "%hu, %hu, %hu", &arg1, &arg2, &arg3); if(got != 3) { error_read(OP, 3, got); } }
 
 void debug_print_memory(int pc) {
 #if defined(DEBUG)

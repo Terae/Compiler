@@ -9,7 +9,7 @@
 
 extern int count_assembly;
 
-//#define TEXT_ASSEMBLY
+#define TEXT_ASSEMBLY
 #define DEBUG
 
 #if defined(TEXT_ASSEMBLY)

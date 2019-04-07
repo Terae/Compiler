@@ -122,11 +122,11 @@ void patchJumpAssembly(int assembly_line, int patch_addr) {
 S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2) {
     S_SYMBOL *result = createTmpSymbol(s1->type);
 
-    writeDebug("operation n°%s", op);
-    writeAssembly(LOAD" %s %d", r1, s1->addr);
-    writeAssembly(LOAD" %s %d", r2, s2->addr);
-    writeAssembly("%s %s %s %s", op, r0, r1, r2);
-    writeAssembly(STORE" %d %s", result->addr, r0);
+    writeDebug("operation %s", op);
+    writeAssembly(LOAD" %s, %d", r1, s1->addr);
+    writeAssembly(LOAD" %s, %d", r2, s2->addr);
+    writeAssembly("%s %s, %s, %s", op, r0, r1, r2);
+    writeAssembly(STORE" %d, %s", result->addr, r0);
     //writeAssembly("%s %d %d %d", op, result->addr, s1->addr, s2->addr);
     freeIfTmp(s2);
     freeIfTmp(s1);
@@ -148,9 +148,9 @@ S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *valu
     }
 
     writeDebug("%s assignment operation", op);
-    writeAssembly(LOAD" %s %d", r1, id->addr);
-    writeAssembly(LOAD" %s %d", r2, value->addr);
-    writeAssembly("%s %d %d %d", op, id->addr, id->addr, value->addr);
+    writeAssembly(LOAD" %s, %d", r1, id->addr);
+    writeAssembly(LOAD" %s, %d", r2, value->addr);
+    writeAssembly("%s %d, %d, %d", op, id->addr, id->addr, value->addr);
     freeIfTmp(value);
     return id;
 }
@@ -162,9 +162,9 @@ void affectation(S_SYMBOL *id, S_SYMBOL *value) {
     }
 
 #if defined(DEBUG)
-    writeAssembly(COP" %d %d ; %s", id->addr, value->addr, id->name);
+    writeAssembly(COP" %d, %d ; %s", id->addr, value->addr, id->name);
 #else
-    writeAssembly(COP" %d %d", id->addr, value->addr);
+    writeAssembly(COP" %d, %d", id->addr, value->addr);
 #endif
     freeIfTmp(value);
 }
@@ -172,8 +172,8 @@ void affectation(S_SYMBOL *id, S_SYMBOL *value) {
 S_SYMBOL *createConstant(T_Type type, int value) {
     S_SYMBOL *symbol = createTmpSymbol(type);
     writeDebug("create a '%s' const symbol with value %d", typeToString(type), value);
-    writeAssembly(AFC" %s %d", r0, value);
-    writeAssembly(STORE" %d %s", symbol->addr, r0);
+    writeAssembly(AFC" %s, %d", r0, value);
+    writeAssembly(STORE" %d, %s", symbol->addr, r0);
     printSymbolTable();
     return symbol;
 }
@@ -182,7 +182,7 @@ S_SYMBOL *negate(S_SYMBOL *s) {
     S_SYMBOL *zero = createTmpSymbol(Integer);
 
     writeDebug("negate the symbol %s (@%d)", s->name, s->addr);
-    writeAssembly(AFC" %d %d", zero->addr, 0);
+    writeAssembly(AFC" %d, %d", zero->addr, 0);
     return binaryOperation(EQU, s, zero);
 }
 
@@ -196,8 +196,8 @@ S_SYMBOL *modulo(S_SYMBOL *s1, S_SYMBOL *s2) {
     writeDebug("@%d modulo @%d", s1->addr, s2->addr);
     S_SYMBOL *s1Copy = createTmpSymbol(Integer);
     S_SYMBOL *s2Copy = createTmpSymbol(Integer);
-    writeAssembly(COP" %d %d", s1Copy->addr, s1->addr);
-    writeAssembly(COP" %d %d", s2Copy->addr, s2->addr);
+    writeAssembly(COP" %d, %d", s1Copy->addr, s1->addr);
+    writeAssembly(COP" %d, %d", s2Copy->addr, s2->addr);
 
     S_SYMBOL *tmp = binaryOperation(DIV, s1, s2);
     S_SYMBOL *result = binaryOperation(MUL, tmp, s2Copy);
