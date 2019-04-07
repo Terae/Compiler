@@ -86,8 +86,8 @@ void writeDebug(const char *line, ...) {
 char *getNthOccurence(char *str, char c, int n) {
     char *result = NULL;
 
-    while(str != NULL && result == NULL) {
-        if(n-- == 0) {
+    while (str != NULL && result == NULL) {
+        if (n-- == 0) {
             result = str;
         }
         str = strchr(str, c) + 1;
@@ -167,6 +167,15 @@ void affectation(S_SYMBOL *id, S_SYMBOL *value) {
     writeAssembly(COP" %d %d", id->addr, value->addr);
 #endif
     freeIfTmp(value);
+}
+
+S_SYMBOL *createConstant(T_Type type, int value) {
+    S_SYMBOL *symbol = createTmpSymbol(type);
+    writeDebug("create a '%s' const symbol with value %d", typeToString(type), value);
+    writeAssembly(AFC" %s %d", r0, value);
+    writeAssembly(STORE" %d %s", symbol->addr, r0);
+    printSymbolTable();
+    return symbol;
 }
 
 S_SYMBOL *negate(S_SYMBOL *s) {

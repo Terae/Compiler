@@ -79,6 +79,8 @@ S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *valu
 
 void affectation(S_SYMBOL *id, S_SYMBOL *value);
 
+S_SYMBOL *createConstant(T_Type type, int value);
+
 S_SYMBOL *negate(S_SYMBOL *s);
 
 S_SYMBOL *toBool(S_SYMBOL *s);

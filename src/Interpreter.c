@@ -55,17 +55,18 @@ int main(int argc, const char **argv) {
     interprete(argv[1]);
 }
 
+typedef u_int16_t memory_size_t;
 static int stack_size = 0;
 static int sp = 0;
-static int stack[STACK_CAPACITY];
-static int *memory;
+static memory_size_t stack[STACK_CAPACITY];
+static memory_size_t *memory;
 
-void push(int value) {
+void push(memory_size_t value) {
     assert(stack_size < STACK_CAPACITY - 1);
     stack[stack_size++] = value;
 }
 
-int pop(void) {
+memory_size_t pop(void) {
     assert(stack_size > 0);
     return stack[--stack_size];
 }
@@ -76,16 +77,16 @@ void error_read(const char *op, int expected, int got) {
     exit(1);
 }
 
-#define READ_ONE(OP)   { int got = sscanf(line, "%d",       &arg1);               if(got != 1) { error_read(OP, 1, got); } }
-#define READ_TWO(OP)   { int got = sscanf(line, "%d %d",    &arg1, &arg2);        if(got != 2) { error_read(OP, 2, got); } }
-#define READ_THREE(OP) { int got = sscanf(line, "%d %d %d", &arg1, &arg2, &arg3); if(got != 3) { error_read(OP, 3, got); } }
+#define READ_ONE(OP)   { int got = sscanf(line, "%hu",         &arg1);               if(got != 1) { error_read(OP, 1, got); } }
+#define READ_TWO(OP)   { int got = sscanf(line, "%hu %hu",     &arg1, &arg2);        if(got != 2) { error_read(OP, 2, got); } }
+#define READ_THREE(OP) { int got = sscanf(line, "%hu %hu %hu", &arg1, &arg2, &arg3); if(got != 3) { error_read(OP, 3, got); } }
 
 void debug_print_memory(int pc) {
 #if defined(DEBUG)
     printf("Line: %d\nStackPointer: %d\n", pc + 1, sp);
 
-    printf("r0: %d\nr1: %d\nr2: %d\n", memory[0], memory[1], memory[2]);
-    for (int i = 0; i < 50; ++i) {
+    printf("r0: %hu\nr1: %hu\nr2: %hu\n", memory[0], memory[1], memory[2]);
+    for (int i = 0; i < 10; ++i) {
         printf("\tmemory[%d]: %d\n", i + 4000, memory[i + 4000]);
     }
 #endif
@@ -115,21 +116,21 @@ size_t get_file_size(FILE *file) {
 }
 
 /// @input Hexa value on a single byte and without the '0x' prefix
-int hexa_to_int(char hexa) {
+u_int8_t hexa_to_byte(char hexa) {
     if (hexa >= '0' && hexa <= '9') {
-        return hexa - '0';
+        return (u_int8_t)(hexa - '0');
     }
     if (hexa >= 'A' && hexa <= 'F') {
-        return hexa - 'A' + 10;
+        return (u_int8_t)(hexa - 'A' + 10);
     }
     if (hexa >= 'a' && hexa <= 'f') {
-        return hexa - 'a' + 10;
+        return (u_int8_t)(hexa - 'a' + 10);
     }
     fprintf(stderr, "Invalid hexadecimal number: '0x%d'\n", hexa);
     exit(1);
 }
 
-int *get_memory(int addr) {
+u_int16_t *get_memory(int addr) {
     addr += sp;
     assert(addr >= 0);
     assert(addr < SIZE_MEMORY);
@@ -169,12 +170,14 @@ void interprete(const char *path) {
     memory = malloc(SIZE_MEMORY * sizeof(int));
     memset(memory, 0x00, SIZE_MEMORY);
 
-    int op, arg1, arg2, arg3, pc = 0;
+    u_int8_t op;
+    u_int16_t arg1, arg2, arg3;
+    int pc = 0;
 
     while (pc < (int)lines_count) {
         char *line = &assembly_source[lines_index[pc]];
         // Allow comments
-        if(line[0] == ';') {
+        if (line[0] == ';') {
             strchr(line, '\n')[0] = '\0';
             printf("\x1b[34m%s\n\x1b[0m", line);
             pc++;
@@ -225,25 +228,25 @@ void interprete(const char *path) {
             }
             case LOAD: {
                 READ_TWO(STRINGIFY(LOAD));
-                *get_memory(arg1) = memory[*get_memory(arg2)];
-                debug_print_op(STRINGIFY(LOAD), "@%d <- mem[@%d]", arg1, arg2);
+                *get_memory(arg1) = memory[arg2];
+                debug_print_op(STRINGIFY(LOAD), "@%d <- mem[%d]", arg1, arg2);
                 break;
             }
             case STORE: {
                 READ_TWO(STRINGIFY(STORE));
-                memory[*get_memory(arg1)] = *get_memory(arg2);
-                debug_print_op(STRINGIFY(STORE), "mem[@%d] <- @%d", arg1, arg2);
+                memory[arg1] = *get_memory(arg2);
+                debug_print_op(STRINGIFY(STORE), "mem[%d] <- @%d", arg1, arg2);
                 break;
             }
             case EQU: {
                 READ_THREE(STRINGIFY(EQU));
-                *get_memory(arg1) = *get_memory(arg2) == *get_memory(arg3);
+                *get_memory(arg1) = (u_int16_t)(*get_memory(arg2) == *get_memory(arg3));
                 debug_print_op(STRINGIFY(EQU), "@%d <- @%d == @%d", arg1, arg2, arg3);
                 break;
             }
             case INF: {
                 READ_THREE(STRINGIFY(INF));
-                *get_memory(arg1) = *get_memory(arg2) < *get_memory(arg3);
+                *get_memory(arg1) = (u_int16_t)(*get_memory(arg2) < *get_memory(arg3));
                 debug_print_op(STRINGIFY(INF), "@%d <- @%d < @%d", arg1, arg2, arg3);
                 break;
             }
@@ -270,7 +273,7 @@ void interprete(const char *path) {
             }
             case JMPC: {
                 READ_TWO(STRINGIFY(JMPC));
-                if(*get_memory(arg2) == 0) {
+                if (*get_memory(arg2) == 0) {
                     pc = arg1;
                     debug_print_op(STRINGIFY(JMPC), "PC <- %d (@%d == 0)", arg1, arg2);
                     continue;

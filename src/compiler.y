@@ -196,38 +196,28 @@ Params :                   { implementation_enabled = 1; }
        | ParamsUnnamedList { implementation_enabled = 0; };
 
 Constant : tNBR {
-                        S_SYMBOL *symbol = addVarWithType("", Integer);
-                        writeAssembly(AFC" %d %d", symbol->addr, $1);
-                        $$ = symbol;
+                         $$ = createConstant(Integer, $1);
                 }
          | tCHAR_LITERAL
                  {
-                         S_SYMBOL *symbol = addVarWithType("", Character);
-                         writeAssembly(AFC" %d %d", symbol->addr, (int)($1[0]));
+                         $$ = createConstant(Character, (int)($1[0]));
                  }
          | tSTRING_LITERAL
                  {
                          warning("The present compiler is not able to manage strings: %s. Transforming it into '%d'.", $1, $1[0]);
-                         S_SYMBOL *symbol = addVarWithType("", Character);
-                         writeAssembly(AFC" %d %d", symbol->addr, (int)($1[0]));
+                         $$ = createConstant(Character, (int)($1[0]));
                  }
          | tTRUE
                  {
-                         S_SYMBOL *symbol = addVarWithType("", Boolean);
-                         writeAssembly(AFC" %d 1", symbol->addr);
-                         $$ = symbol;
+                         $$ = createConstant(Boolean, 1);
                  }
          | tFALSE
                  {
-                         S_SYMBOL *symbol = addVarWithType("", Boolean);
-                         writeAssembly(AFC" %d 0", symbol->addr);
-                         $$ = symbol;
+                         $$ = createConstant(Boolean, 0);
                  }
          | tNULL
                  {
-                         S_SYMBOL *symbol = addVarWithType("", Boolean);
-                         writeAssembly(AFC" %d 0", symbol->addr);
-                         $$ = symbol;
+                         $$ = createConstant(Integer, 0);
                  };
 
 ExpressionPrimary : tID {
@@ -253,8 +243,7 @@ ExpressionPostfix : ExpressionPrimary
                                 S_SYMBOL *left = $1; // getLastSymbol();
                                 S_SYMBOL *copy = addVarWithType("", left->type);
                                 writeAssembly(COP" %d %d", copy->addr, left->addr);
-                                S_SYMBOL *one = addVarWithType("", Integer);
-                                writeAssembly(AFC" %d 1", one->addr);
+                                S_SYMBOL *one = createConstant(Integer, 1);
 
                                 binaryOperationAssignment(ADD, $1, one);
                                 $$ = copy;
@@ -265,8 +254,7 @@ ExpressionPostfix : ExpressionPrimary
                                 S_SYMBOL *left = $1; // getLastSymbol();
                                 S_SYMBOL *copy = addVarWithType("", left->type);
                                 writeAssembly(COP" %d %d", copy->addr, left->addr);
-                                S_SYMBOL *one = addVarWithType("", Integer);
-                                writeAssembly(AFC" %d 1", one->addr);
+                                S_SYMBOL *one = createConstant(Integer, 1);
 
                                 binaryOperationAssignment(SOU, $1, one);
                                 $$ = copy;
@@ -278,30 +266,28 @@ ArgumentExpressionList :                            ExpressionAssignment
 ExpressionUnary : ExpressionPostfix
                 | tINCR   ExpressionUnary
                         {
-                                S_SYMBOL *one = addVarWithType("", Integer);
-                                writeAssembly(AFC" %d 1", one->addr);
+                                writeDebug("prefix increment");
+                                S_SYMBOL *one = createConstant(Integer, 1);
                                 $$ = binaryOperationAssignment(ADD, $2, one);
                         }
                 | tDECR   ExpressionUnary
                         {
-                                S_SYMBOL *one = addVarWithType("", Integer);
-                                writeAssembly(AFC" %d 1", one->addr);
+                                writeDebug("prefix decrement");
+                                S_SYMBOL *one = createConstant(Integer, 1);
                                 $$ = binaryOperationAssignment(SOU, $2, one);
                         }
                 | tSIZEOF ExpressionUnary
                         {
-                                S_SYMBOL *s = $2, *result = addVarWithType("", Integer);
-                                writeAssembly(AFC" %d %d", result->addr, getSymbolSize(s));
+                                writeDebug("sizeof");
+                                S_SYMBOL *s = $2, *size = createConstant(Integer, getSymbolSize(s));
                                 freeIfTmp(s);
-                                $$ = result;
+                                $$ = size;
                         }
                 | '&' ExpressionCast
                         {
                                 writeDebug("referencement");
                                 S_SYMBOL *s = $2;
-                                S_SYMBOL *a = addVarWithType("", s->type);
-                                writeAssembly(AFC" %d %d", a->addr, s->addr);
-                                $$ = a;
+                                $$ = createConstant(Integer, s->addr);
                         }
                 | '*' ExpressionCast
                         {
@@ -312,12 +298,20 @@ ExpressionUnary : ExpressionPostfix
                 | '+' ExpressionCast %prec '*' { $$ = $2; }
                 | '-' ExpressionCast %prec '*'
                         {
-                                S_SYMBOL *tmp = addVarWithType("", Integer);
-                                writeAssembly(AFC" %d -1", tmp->addr);
-                                $$ = binaryOperation(MUL, $2, tmp);
+                                writeDebug("inverse");
+                                S_SYMBOL *minusOne = createConstant(Integer, -1);
+                                $$ = binaryOperation(MUL, $2, minusOne);
                         }
-                | '~' ExpressionCast { $$ = bitnot($2); }
-                | '!' ExpressionCast { $$ = negate($2); };
+                | '~' ExpressionCast
+                        {
+                                writeDebug("bitwise not");
+                                $$ = bitnot($2);
+                        }
+                | '!' ExpressionCast
+                        {
+                                writeDebug("negate");
+                                $$ = negate($2);
+                        };
 
 ExpressionCast : ExpressionUnary;
                | '(' FinalType ')' ExpressionCast
@@ -338,8 +332,7 @@ ExpressionCast : ExpressionUnary;
                                                S_SYMBOL *s = $4;
                                                s->type = Character;
 
-                                               S_SYMBOL *mask = addVarWithType("", Integer);
-                                               writeAssembly(AFC" %d 255", mask->addr);
+                                               S_SYMBOL *mask = createConstant(Integer, 255);
 
                                                $$ = bitand(s, mask);
                                                break;
@@ -407,8 +400,7 @@ ExpressionLogicalAnd :                           ExpressionInclusiveOr
                      | ExpressionLogicalAnd tAND ExpressionInclusiveOr
                          {
                                 S_SYMBOL *s = binaryOperation(ADD, toBool($1), toBool($3));
-                                S_SYMBOL *two = addVarWithType("", Integer);
-                                writeAssembly(AFC" %d 2", two->addr);
+                                S_SYMBOL *two = createConstant(Integer, 2);
                                 $$ = binaryOperation(EQU, s, two);
                          };
 
@@ -417,8 +409,7 @@ ExpressionLogicalOr :                         ExpressionLogicalAnd
                     | ExpressionLogicalOr tOR ExpressionLogicalAnd
                          {
                                 S_SYMBOL *s = binaryOperation(ADD, toBool($1), toBool($3));
-                                S_SYMBOL *zero = addVarWithType("", Integer);
-                                writeAssembly(AFC" %d 0", zero->addr);
+                                S_SYMBOL *zero = createConstant(Integer, 0);
                                 $$ = binaryOperation(INF, zero, s);
                          };
 
@@ -497,8 +488,10 @@ StatementLabeled : tID ':' Statement
                  | tCASE ExpressionConstant ':' Statement
                  | tDEFAULT ':' Statement;
 
-FunctionStatementCompound : '{' { pushBlock(); } { if (implementation_enabled == 0) { yyerror("parameter name ommitted"); } }               '}' { popBlock(); }
-                          | '{' { pushBlock(); } { if (implementation_enabled == 0) { yyerror("parameter name ommitted"); } } BlockItemList '}' { popBlock(); };
+FunctionStatementCompoundFactor : '{' { pushBlock(); } { if (implementation_enabled == 0) { yyerror("parameter name ommitted"); } };
+
+FunctionStatementCompound : FunctionStatementCompoundFactor               '}' { popBlock(); }
+                          | FunctionStatementCompoundFactor BlockItemList '}' { popBlock(); };
 
 StatementCompound : '{' { pushBlock(); }               '}' { popBlock(); }
                   | '{' { pushBlock(); } BlockItemList '}' { popBlock(); };
@@ -513,14 +506,14 @@ StatementExpression : End
                     | Expression End
                     | tPRINTF '(' Expression ')' End;
 
-IfActionFactor: { writeAssembly(LOAD" %s %d", r0, ($<symbol>-1)->addr); ($<nbr>-2) = count_assembly; writeAssembly(JMPC" NULL %s", r0); };
+StatementSelectionFactor: { writeDebug("IF"); writeAssembly(LOAD" %s %d", r0, ($<symbol>-1)->addr); ($<nbr>-2) = count_assembly; writeAssembly(JMPC" NULL %s", r0); };
 
-StatementSelection : tIF '(' Expression ')' IfActionFactor Statement       { $4 = count_assembly; patchJumpAssembly($2, $4); } %prec EndIf
-                   | tIF '(' Expression ')' IfActionFactor Statement tELSE { $4 = count_assembly; patchJumpAssembly($2, $4 + 1); writeAssembly(JMP" NULL"); } Statement { patchJumpAssembly($4, count_assembly);}
+StatementSelection : tIF '(' Expression ')' StatementSelectionFactor Statement       { $4 = count_assembly; patchJumpAssembly($2, $4); } %prec EndIf
+                   | tIF '(' Expression ')' StatementSelectionFactor Statement tELSE { $4 = count_assembly; patchJumpAssembly($2, $4 + 1); writeAssembly(JMP" NULL"); writeDebug("ELSE"); } Statement { patchJumpAssembly($4, count_assembly);}
                    | tSWITCH '(' Expression ')' Statement;
 
-StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expression ')' { writeAssembly(LOAD" %s %d", r0, $4->addr); writeAssembly(EQU" %s 0", r0); writeAssembly(JMPC" NULL %s", r0); $5 = count_assembly; } Statement { patchJumpAssembly($5, count_assembly); writeAssembly(JMP" %d", $2); }
-                   | tDO { $1 = count_assembly; } Statement tWHILE '(' Expression ')' { writeAssembly(LOAD" %s %d", r0, $6->addr); writeAssembly(JMPC" %s %s", $1, r0); }  End
+StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expression ')' { writeDebug("WHILE"); writeAssembly(LOAD" %s %d", r1, $4->addr); writeAssembly(AFC" %s 0", r2); writeAssembly(EQU" %s %s %s", r0, r1, r2); $5 = count_assembly; writeAssembly(JMPC" NULL %s", r0); } Statement { writeAssembly(JMP" %d", $2); patchJumpAssembly($5, count_assembly); }
+                   | tDO { writeDebug("DO"); $1 = count_assembly; } Statement tWHILE '(' Expression ')' { writeAssembly("WHILE"); writeAssembly(LOAD" %s %d", r1, $6->addr); writeAssembly(AFC" %s 0", r2); writeAssembly(EQU" %s %s %s", r0, r1, r2); writeAssembly(JMPC" %s %s", $1, r0); }  End
                    | tFOR '(' StatementExpression StatementExpression            ')' Statement
                    | tFOR '(' StatementExpression StatementExpression Expression ')' Statement
                    | tFOR '(' Declaration         StatementExpression            ')' Statement

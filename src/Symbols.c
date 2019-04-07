@@ -172,11 +172,11 @@ void freeIfTmp(S_SYMBOL *s) {
 int getSymbolSize(const S_SYMBOL *s) {
     switch (s->type) {
         case Integer:
-            return 4;
+            return 2;
         case Character:
-            return 1;
+            return 2;
         case Boolean:
-            return 1;
+            return 2;
         case Void:
         case Error:
         default:
