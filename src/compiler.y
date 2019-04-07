@@ -249,6 +249,7 @@ ExpressionPostfix : ExpressionPrimary
                   | ExpressionPostfix tPTR_OP tID
                   | ExpressionPostfix tINCR
                           {
+                                writeDebug("postfix increment");
                                 S_SYMBOL *left = $1; // getLastSymbol();
                                 S_SYMBOL *copy = addVarWithType("", left->type);
                                 writeAssembly(COP" %d %d", copy->addr, left->addr);
@@ -260,6 +261,7 @@ ExpressionPostfix : ExpressionPrimary
                         }
                   | ExpressionPostfix tDECR
                           {
+                                writeDebug("postfix decrement");
                                 S_SYMBOL *left = $1; // getLastSymbol();
                                 S_SYMBOL *copy = addVarWithType("", left->type);
                                 writeAssembly(COP" %d %d", copy->addr, left->addr);
@@ -295,6 +297,7 @@ ExpressionUnary : ExpressionPostfix
                         }
                 | '&' ExpressionCast
                         {
+                                writeDebug("referencement");
                                 S_SYMBOL *s = $2;
                                 S_SYMBOL *a = addVarWithType("", s->type);
                                 writeAssembly(AFC" %d %d", a->addr, s->addr);
@@ -302,6 +305,7 @@ ExpressionUnary : ExpressionPostfix
                         }
                 | '*' ExpressionCast
                         {
+                                writeDebug("dereferencement");
                                 warning("The present compiler is not able to manage the dereferencement of pointer: %d, skipping.", $2->addr);
                                 $$ = $2;
                         }
@@ -321,6 +325,7 @@ ExpressionCast : ExpressionUnary;
                                        switch ($2) {
                                            case Integer:
                                            {
+                                               writeDebug("casting from %s to %s", typeToString($4->type), "int");
                                                S_SYMBOL *s = $4;
                                                s->type = Integer;
                                                $$ = s;
@@ -329,6 +334,7 @@ ExpressionCast : ExpressionUnary;
 
                                            case Character:
                                            {
+                                               writeDebug("casting from %s to %s", typeToString($4->type), "char");
                                                S_SYMBOL *s = $4;
                                                s->type = Character;
 
@@ -340,6 +346,7 @@ ExpressionCast : ExpressionUnary;
                                            }
 
                                            case Boolean:
+                                               writeDebug("casting from %s to %s", typeToString($4->type), "int");
                                                $$ = toBool($4);
                                                break;
 

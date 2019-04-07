@@ -61,6 +61,8 @@ void freeIfTmp(S_SYMBOL *s);
 
 int getSymbolSize(const S_SYMBOL *s);
 
+char *typeToString(T_Type type);
+
 void printSymbolTable();
 
 S_SYMBOL *getSymbolByName(const char *name);

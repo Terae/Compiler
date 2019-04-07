@@ -9,7 +9,8 @@
 
 extern int count_assembly;
 
-#define TEXT_ASSEMBLY
+//#define TEXT_ASSEMBLY
+#define DEBUG
 
 #if defined(TEXT_ASSEMBLY)
 
@@ -67,6 +68,8 @@ void initAssemblyOutput(const char *path);
 void closeAssemblyOutput(char const *path);
 
 void writeAssembly(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
+
+void writeDebug(const char *line, ...) __attribute__ ((__format__ (__printf__, 1, 2)));
 
 void patchJumpAssembly(int assembly_line, int patch_addr);
 

@@ -173,7 +173,15 @@ void interprete(const char *path) {
 
     while (pc < (int)lines_count) {
         char *line = &assembly_source[lines_index[pc]];
-        op = hexa_to_int(line[0]);
+        // Allow comments
+        if(line[0] == ';') {
+            strchr(line, '\n')[0] = '\0';
+            printf("\x1b[34m%s\n\x1b[0m", line);
+            pc++;
+            continue;
+        }
+
+        op = hexa_to_byte(line[0]);
         line++;
 
         debug_print_memory(pc);
@@ -262,11 +270,12 @@ void interprete(const char *path) {
             }
             case JMPC: {
                 READ_TWO(STRINGIFY(JMPC));
-                if(*get_memory(arg2) != 0) {
+                if(*get_memory(arg2) == 0) {
                     pc = arg1;
                     debug_print_op(STRINGIFY(JMPC), "PC <- %d (@%d == 0)", arg1, arg2);
                     continue;
                 }
+                debug_print_op(STRINGIFY(JMPC), "pass");
                 break;
                 READ_ONE(STRINGIFY(JMPC));
                 debug_print_op(STRINGIFY(JMPC), "no jump (@%d == %d != 0)", arg2, *get_memory(arg2));
@@ -278,6 +287,7 @@ void interprete(const char *path) {
             }
         }
         pc++;
+        printf("\n");
     }
 
     printf("\n\n=== END OF PROGRAM ===\nFinal memory state:");

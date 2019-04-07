@@ -64,6 +64,25 @@ void writeAssembly(const char *line, ...) {
     count_assembly++;
 }
 
+void writeDebug(const char *line, ...) {
+#if defined(DEBUG)
+    va_list args;
+    va_start(args, line);
+
+    char **buffer = &bufferAssembly;
+
+    char *buf1, *buf2;
+    vasprintf(&buf1, line, args);
+    asprintf(&buf2, "%s; %s\n", *buffer, buf1);
+    free(buf1);
+    free(*buffer);
+
+    va_end(args);
+    *buffer = buf2;
+    count_assembly++;
+#endif
+}
+
 char *getNthOccurence(char *str, char c, int n) {
     char *result = NULL;
 
@@ -103,6 +122,7 @@ void patchJumpAssembly(int assembly_line, int patch_addr) {
 S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2) {
     S_SYMBOL *result = createTmpSymbol(s1->type);
 
+    writeDebug("operation n°%s", op);
     writeAssembly(LOAD" %s %d", r1, s1->addr);
     writeAssembly(LOAD" %s %d", r2, s2->addr);
     writeAssembly("%s %s %s %s", op, r0, r1, r2);
@@ -127,6 +147,7 @@ S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *valu
         return NULL;
     }
 
+    writeDebug("%s assignment operation", op);
     writeAssembly(LOAD" %s %d", r1, id->addr);
     writeAssembly(LOAD" %s %d", r2, value->addr);
     writeAssembly("%s %d %d %d", op, id->addr, id->addr, value->addr);
@@ -140,13 +161,18 @@ void affectation(S_SYMBOL *id, S_SYMBOL *value) {
         return;
     }
 
+#if defined(DEBUG)
     writeAssembly(COP" %d %d ; %s", id->addr, value->addr, id->name);
+#else
+    writeAssembly(COP" %d %d", id->addr, value->addr);
+#endif
     freeIfTmp(value);
 }
 
 S_SYMBOL *negate(S_SYMBOL *s) {
     S_SYMBOL *zero = createTmpSymbol(Integer);
 
+    writeDebug("negate the symbol %s (@%d)", s->name, s->addr);
     writeAssembly(AFC" %d %d", zero->addr, 0);
     return binaryOperation(EQU, s, zero);
 }
@@ -158,6 +184,7 @@ S_SYMBOL *toBool(S_SYMBOL *s) {
 }
 
 S_SYMBOL *modulo(S_SYMBOL *s1, S_SYMBOL *s2) {
+    writeDebug("@%d modulo @%d", s1->addr, s2->addr);
     S_SYMBOL *s1Copy = createTmpSymbol(Integer);
     S_SYMBOL *s2Copy = createTmpSymbol(Integer);
     writeAssembly(COP" %d %d", s1Copy->addr, s1->addr);
