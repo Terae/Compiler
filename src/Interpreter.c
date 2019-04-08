@@ -181,8 +181,10 @@ void interprete(const char *path) {
         char *line = &assembly_source[lines_index[pc]];
         // Allow comments
         if (line[0] == ';') {
+#if defined(DEBUG)
             strchr(line, '\n')[0] = '\0';
             printf("\x1b[34m%s\n\x1b[0m", line);
+#endif
             pc++;
             continue;
         }
@@ -307,11 +309,15 @@ void interprete(const char *path) {
             }
         }
         pc++;
+#if defined(DEBUG)
         printf("\n");
+#endif
     }
 
+#if defined(DEBUG)
     printf("\n\n=== END OF PROGRAM ===\nFinal memory state:");
     debug_print_memory(pc);
+#endif
 
     free(memory);
     free(assembly_source);
