@@ -86,6 +86,7 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
 
 "main"          {echo; return tID;}
 "printf"        {echo; return tPRINTF;}
+"scanf"         {echo; return tSCANF;}
 
 "const"         {echo; return tCONST;}
 "int"           {echo; return tINT;}

@@ -34,6 +34,9 @@ extern int count_assembly;
     // #define SUP   "SUP"   // 0x0C
     // #define SUPE  "SUPE"  // 0x0D
 
+    #define PRINT "PRINT" // 0x0B
+    #define SCANF "SCANF" // 0x0C
+
     #define JMP   "JMP"   // 0x0E
     #define JMPC  "JMPC"  // 0x0F
 
@@ -58,6 +61,9 @@ extern int count_assembly;
     // #define INFE  "B"
     // #define SUP   "C"
     // #define SUPE  "D"
+
+    #define PRINT "B"
+    #define SCANF "C"
 
     #define JMP   "E"
     #define JMPC  "F"

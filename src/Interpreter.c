@@ -32,6 +32,9 @@
 // #define SUP   0xC
 // #define SUPE  0xD
 
+#define PRINT 0xB
+#define SCANF 0xC
+
 #define JMP   0xE
 #define JMPC  0xF
 
@@ -265,8 +268,25 @@ void interprete(const char *path) {
                 *get_memory(arg1) = *get_memory(arg2) >= *get_memory(arg3);
                 break;
             }*/
+            case PRINT: {
+                READ_ONE(STRINGIFY(PRINT));
+                debug_print_op(STRINGIFY(PRINT), "printf(%d)", arg1);
+                printf("printf: \x1b[32m%d\x1b[0m\n", *get_memory(arg1));
+                break;
+            }
+            case SCANF: {
+                READ_ONE(STRINGIFY(SCANF));
+                debug_print_op(STRINGIFY(SCANF), "scanf(%%d)");
+                char c;
+                if (scanf("%hu%c", &arg2, &c) != 2 || c != '\n') {
+                    while (getchar() != '\n') {}
+                    arg2 = 0;
+                }
+                *get_memory(*get_memory(arg1) - sp) = arg2;
+                break;
+            }
             case JMP: {
-                READ_ONE(STRINGIFY(JWP));
+                READ_ONE(STRINGIFY(JMP));
                 pc = arg1;
                 debug_print_op(STRINGIFY(JMP), "PC <- %d", arg1);
                 continue;
@@ -278,10 +298,7 @@ void interprete(const char *path) {
                     debug_print_op(STRINGIFY(JMPC), "PC <- %d (@%d == 0)", arg1, arg2);
                     continue;
                 }
-                debug_print_op(STRINGIFY(JMPC), "pass");
-                break;
-                READ_ONE(STRINGIFY(JMPC));
-                debug_print_op(STRINGIFY(JMPC), "no jump (@%d == %d != 0)", arg2, *get_memory(arg2));
+                debug_print_op(STRINGIFY(JMPC), "no conditional jump (@%d == %d != 0)", arg2, *get_memory(arg2));
                 break;
             }
             default: {

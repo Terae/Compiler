@@ -42,7 +42,7 @@ build: clean lib yacc lex
 	gcc -o $(PROG_NAME) $(LEX_OUTPUT) $(YACC_OUTPUT).c $(SOURCE_FILES) -ll -ly -Wall -Wextra -D_GNU_SOURCE=1 -std=gnu99
 
 run: build
-	$(BUILD_DIR)/$(PROG_NAME) < $(TEST_DIR)/input
+	$(BUILD_DIR)/$(PROG_NAME) < $(TEST_DIR)/input.c
 
 # Automatic testing all the syntax
 TestsNoGood:=$(shell cd $(TEST_DIR); ls impostor_C | egrep '^[0-9]+' | sort -n )

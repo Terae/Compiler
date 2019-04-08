@@ -82,7 +82,7 @@
 %type <type> TypeSpecifier
 %type <type> FinalType
 
-%token tMAIN tPRINTF
+%token tMAIN tPRINTF tSCANF
 %token tCONST tINT tVOID tCHAR tENUM tBOOL
 %token tIF tELSE tSWITCH tCASE tDEFAULT tFOR tWHILE tDO tBREAK tCONTINUE tRETURN tSIZEOF
 %token tAND tOR tTRUE tFALSE tNULL
@@ -504,7 +504,17 @@ BlockItem : Declaration
 
 StatementExpression : End
                     | Expression End
-                    | tPRINTF '(' Expression ')' End;
+                    | tPRINTF { writeDebug("PRINTF"); } '(' Expression ')' End { writeAssembly(PRINT" %hu", $4->addr); }
+                    | tSCANF  { writeDebug("SCANF");  } '(' tID ')' End
+                        {
+                            S_SYMBOL *id = getSymbolByName($4);
+                            if (id == NULL) {
+                                yyerror("Unknown id: '%s'", $4);
+                            } else {
+                                writeAssembly(SCANF" %s", r0);
+                                writeAssembly(STORE" %d, %s", id->addr, r0);
+                            }
+                        }
 
 StatementSelectionFactor: { writeDebug("IF"); writeAssembly(LOAD" %s, %d", r0, ($<symbol>-1)->addr); ($<nbr>-2) = count_assembly; writeAssembly(JMPC" NULL, %s", r0); };
 
