@@ -12,24 +12,25 @@ extern int count_assembly;
 #define TEXT_ASSEMBLY
 #define DEBUG
 
+#define r0  "0"
+#define r1  "1"
+#define r2  "2"
+#define esp "3"
+
 #if defined(TEXT_ASSEMBLY)
 
-    #define r0 "r0"
-    #define r1 "r1"
-    #define r2 "r2"
+    #define ADD   "ADD  " // 0x01
+    #define MUL   "MUL  " // 0x02
+    #define SOU   "SOU  " // 0x03
+    #define DIV   "DIV  " // 0x04
 
-    #define ADD   "ADD"   // 0x01
-    #define MUL   "MUL"   // 0x02
-    #define SOU   "SOU"   // 0x03
-    #define DIV   "DIV"   // 0x04
-
-    #define COP   "COP"   // 0x05
-    #define AFC   "AFC"   // 0x06
-    #define LOAD  "LOAD"  // 0x07
+    #define COP   "COP  " // 0x05
+    #define AFC   "AFC  " // 0x06
+    #define LOAD  "LOAD " // 0x07
     #define STORE "STORE" // 0x08
 
-    #define EQU   "EQU"   // 0x09
-    #define INF   "INF"   // 0x0A
+    #define EQU   "EQU  " // 0x09
+    #define INF   "INF  " // 0x0A
     // #define INFE  "INFE"  // 0x0B
     // #define SUP   "SUP"   // 0x0C
     // #define SUPE  "SUPE"  // 0x0D
@@ -37,36 +38,38 @@ extern int count_assembly;
     #define PRINT "PRINT" // 0x0B
     #define SCANF "SCANF" // 0x0C
 
-    #define JMP   "JMP"   // 0x0E
-    #define JMPC  "JMPC"  // 0x0F
+    #define JMP   "JMP  " // 0x0E
+    #define JMPC  "JMPC " // 0x0F
+
+    #define PUSH  "PUSH " // 0x10
+    #define POP   "POP  " // 0x11
 
 #else // defined(TEXT_ASSEMBLY)
 
-    #define r0 "0"
-    #define r1 "1"
-    #define r2 "2"
+    #define ADD   "0x01"
+    #define MUL   "0x02"
+    #define SOU   "0x03"
+    #define DIV   "0x04"
 
-    #define ADD   "1"
-    #define MUL   "2"
-    #define SOU   "3"
-    #define DIV   "4"
+    #define COP   "0x05"
+    #define AFC   "0x06"
+    #define LOAD  "0x07"
+    #define STORE "0x08"
 
-    #define COP   "5"
-    #define AFC   "6"
-    #define LOAD  "7"
-    #define STORE "8"
-
-    #define EQU   "9"
-    #define INF   "A"
+    #define EQU   "0x09"
+    #define INF   "0x0A"
     // #define INFE  "B"
     // #define SUP   "C"
     // #define SUPE  "D"
 
-    #define PRINT "B"
-    #define SCANF "C"
+    #define PRINT "0x0B"
+    #define SCANF "0x0C"
 
-    #define JMP   "E"
-    #define JMPC  "F"
+    #define JMP   "0x0E"
+    #define JMPC  "0x0F"
+
+    #define PUSH  "0x10"
+    #define POP   "0x11"
 
 #endif
 

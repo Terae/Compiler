@@ -38,6 +38,9 @@
 #define JMP   0xE
 #define JMPC  0xF
 
+#define PUSH  0x10
+#define POP   0x11
+
 void print_help(const char *program) {
     fprintf(stderr, "Usage: %s <assembly_file.s>\n", program);
     exit(1);
@@ -59,19 +62,18 @@ int main(int argc, const char **argv) {
 }
 
 typedef u_int16_t memory_size_t;
-static int stack_size = 0;
-static int sp = 0;
+static int esp = 0;
 static memory_size_t stack[STACK_CAPACITY];
 static memory_size_t *memory;
 
 void push(memory_size_t value) {
-    assert(stack_size < STACK_CAPACITY - 1);
-    stack[stack_size++] = value;
+    assert(esp < STACK_CAPACITY - 1);
+    stack[esp++] = value;
 }
 
 memory_size_t pop(void) {
-    assert(stack_size > 0);
-    return stack[--stack_size];
+    assert(esp > 0);
+    return stack[--esp];
 }
 
 void error_read(const char *op, int expected, int got) {
@@ -80,13 +82,13 @@ void error_read(const char *op, int expected, int got) {
     exit(1);
 }
 
-#define READ_ONE(OP)   { int got = sscanf(line, "%hu",         &arg1);               if(got != 1) { error_read(OP, 1, got); } }
-#define READ_TWO(OP)   { int got = sscanf(line, "%hu, %hu",     &arg1, &arg2);        if(got != 2) { error_read(OP, 2, got); } }
+#define READ_ONE(OP)   { int got = sscanf(line, "%hu",           &arg1);               if(got != 1) { error_read(OP, 1, got); } }
+#define READ_TWO(OP)   { int got = sscanf(line, "%hu, %hu",      &arg1, &arg2);        if(got != 2) { error_read(OP, 2, got); } }
 #define READ_THREE(OP) { int got = sscanf(line, "%hu, %hu, %hu", &arg1, &arg2, &arg3); if(got != 3) { error_read(OP, 3, got); } }
 
 void debug_print_memory(int pc) {
 #if defined(DEBUG)
-    printf("Line: %d\nStackPointer: %d\n", pc + 1, sp);
+    printf("Line: %d\nStackPointer: %d\n", pc + 1, esp);
 
     printf("r0: %hu\nr1: %hu\nr2: %hu\n", memory[0], memory[1], memory[2]);
     for (int i = 0; i < 10; ++i) {
@@ -118,23 +120,57 @@ size_t get_file_size(FILE *file) {
     return size;
 }
 
-/// @input Hexa value on a single byte and without the '0x' prefix
-u_int8_t hexa_to_byte(char hexa) {
-    if (hexa >= '0' && hexa <= '9') {
-        return (u_int8_t)(hexa - '0');
+u_int8_t extract_op_from_string(const char *line) {
+    char *copy = strdup(line);
+    strchr(copy, ' ')[0] = '\0';
+
+    if (strcmp(copy, "ADD") == 0) {
+        return ADD;
     }
-    if (hexa >= 'A' && hexa <= 'F') {
-        return (u_int8_t)(hexa - 'A' + 10);
+    if (strcmp(copy, "MUL") == 0) {
+        return MUL;
     }
-    if (hexa >= 'a' && hexa <= 'f') {
-        return (u_int8_t)(hexa - 'a' + 10);
+    if (strcmp(copy, "SOU") == 0) {
+        return SOU;
     }
-    fprintf(stderr, "Invalid hexadecimal number: '0x%d'\n", hexa);
-    exit(1);
+    if (strcmp(copy, "DIV") == 0) {
+        return DIV;
+    }
+    if (strcmp(copy, "COP") == 0) {
+        return COP;
+    }
+    if (strcmp(copy, "AFC") == 0) {
+        return AFC;
+    }
+    if (strcmp(copy, "LOAD") == 0) {
+        return LOAD;
+    }
+    if (strcmp(copy, "STORE") == 0) {
+        return STORE;
+    }
+    if (strcmp(copy, "EQU") == 0) {
+        return EQU;
+    }
+    if (strcmp(copy, "INF") == 0) {
+        return INF;
+    }
+    if (strcmp(copy, "PRINT") == 0) {
+        return PRINT;
+    }
+    if (strcmp(copy, "SCANF") == 0) {
+        return SCANF;
+    }
+    if (strcmp(copy, "JMP") == 0) {
+        return JMP;
+    }
+    if (strcmp(copy, "JMPC") == 0) {
+        return JMPC;
+    }
+    return 255;
 }
 
 u_int16_t *get_memory(int addr) {
-    addr += sp;
+    addr += esp;
     assert(addr >= 0);
     assert(addr < SIZE_MEMORY);
     return &memory[addr];
@@ -179,18 +215,20 @@ void interprete(const char *path) {
 
     while (pc < (int)lines_count) {
         char *line = &assembly_source[lines_index[pc]];
+        strchr(line, '\n')[0] = '\0';
+
         // Allow comments
         if (line[0] == ';') {
 #if defined(DEBUG)
-            strchr(line, '\n')[0] = '\0';
             printf("\x1b[34m%s\n\x1b[0m", line);
 #endif
             pc++;
             continue;
         }
 
-        op = hexa_to_byte(line[0]);
-        line++;
+        op = extract_op_from_string(line);
+
+        line = strchr(line, ' ');
 
         debug_print_memory(pc);
 
@@ -284,7 +322,7 @@ void interprete(const char *path) {
                     while (getchar() != '\n') {}
                     arg2 = 0;
                 }
-                *get_memory(*get_memory(arg1) - sp) = arg2;
+                *get_memory(*get_memory(arg1) - esp) = arg2;
                 break;
             }
             case JMP: {
@@ -300,11 +338,24 @@ void interprete(const char *path) {
                     debug_print_op(STRINGIFY(JMPC), "PC <- %d (@%d == 0)", arg1, arg2);
                     continue;
                 }
-                debug_print_op(STRINGIFY(JMPC), "no conditional jump (@%d == %d != 0)", arg2, *get_memory(arg2));
+                debug_print_op(STRINGIFY(JMPC), "no conditional jump (@%d == %hu != 0)", arg2, *get_memory(arg2));
+                break;
+            }
+            case PUSH: {
+                READ_ONE(STRINGIFY(PUSH));
+                push(*get_memory(arg1));
+                debug_print_op(STRINGIFY(PUSH), "stack.push(%hu), esp = %d", *get_memory(arg1), esp);
+                break;
+            }
+            case POP: {
+                READ_ONE(STRINGIFY(POP));
+                memory_size_t value = pop();
+                *get_memory(arg1) = value;
+                debug_print_op(STRINGIFY(POP), "stack.pop() == %hu, esp = %d", value, esp);
                 break;
             }
             default: {
-                fprintf(stderr, "ERROR: unknown op code: '%d'\n", op);
+                fprintf(stderr, "ERROR: unknown op code: '%d'. Assembly line: number %d, '%s'\n", op, pc, line);
                 exit(1);
             }
         }
