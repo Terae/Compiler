@@ -59,6 +59,7 @@
 %type <nbr> tDO
 %type <nbr> '('
 %type <nbr> ')'
+%type <symbol> '='
 %type <symbol> Constant
 %type <symbol> ExpressionPrimary
 %type <symbol> ExpressionPostfix
@@ -168,7 +169,7 @@ FinalType :                   TypeSpecifier
 TypedDeclarationAssignmentNext : End
                                | ',' TypedDeclarationAssignment;
 
-TypedDeclarationAssignment : tID  { addVar($1); } '=' ExpressionAssignment TypedDeclarationAssignmentNext;
+TypedDeclarationAssignment : tID '=' { $2 = addVar($1); } ExpressionAssignment { affectation($2, $4); } TypedDeclarationAssignmentNext;
 
 TypedDeclarationNext : End
                      | ',' TypedDeclaration;
