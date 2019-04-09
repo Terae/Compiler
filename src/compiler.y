@@ -523,7 +523,7 @@ StatementSelection : tIF '(' Expression ')' StatementSelectionFactor Statement  
                    | tSWITCH '(' Expression ')' Statement;
 
 StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expression ')' { writeDebug("WHILE"); writeAssembly(LOAD" %s, %d", r1, $4->addr); writeAssembly(AFC" %s, 0", r2); writeAssembly(EQU" %s, %s, %s", r0, r1, r2); $5 = count_assembly; writeAssembly(JMPC" NULL, %s", r0); } Statement { writeAssembly(JMP" %d", $2); patchJumpAssembly($5, count_assembly); }
-                   | tDO { writeDebug("DO"); $1 = count_assembly; } Statement tWHILE '(' Expression ')' { writeDebug("WHILE"); writeAssembly(LOAD" %s, %d", r1, $6->addr); writeAssembly(AFC" %s, 0", r2); writeAssembly(EQU" %s, %s, %s", r0, r1, r2); writeAssembly(JMPC" %s, %s", $1, r0); }  End
+                   | tDO { writeDebug("DO"); $1 = count_assembly; } Statement tWHILE '(' Expression ')' End { writeDebug("WHILE"); writeAssembly(LOAD" %s, %d", r1, $6->addr); writeAssembly(AFC" %s, 0", r2); writeAssembly(EQU" %s, %s, %s", r0, r1, r2); writeAssembly(JMPC" %d, %s", $1, r0); }
                    | tFOR '(' StatementExpression StatementExpression            ')' Statement
                    | tFOR '(' StatementExpression StatementExpression Expression ')' Statement
                    | tFOR '(' Declaration         StatementExpression            ')' Statement

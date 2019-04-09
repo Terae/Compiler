@@ -8,8 +8,8 @@ SOURCE_DIR=src
 BUILD_DIR=build
 TEST_DIR=test
 CHECKER=$(TEST_DIR)/checker.sh
-SOURCE_FILES := Assembly.c Error.c Symbols.c
-HEADER_FILES := Assembly.h Error.h Symbols.h
+SOURCE_FILES := Assembly.c Error.c Functions.c Symbols.c
+HEADER_FILES := Assembly.h Error.h Functions.h Symbols.h
 
 YACC_OUTPUT=y.tab
 LEX_OUTPUT=lex.yy.c
