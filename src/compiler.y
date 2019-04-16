@@ -9,6 +9,7 @@
     #include "Assembly.h"
     #include "Error.h"
     #include "Symbols.h"
+    #include "Functions.h"
 
     #define YYERROR_VERBOSE
 
@@ -41,7 +42,21 @@
     S_SYMBOL *addVar(const char *name) {
         return addVarWithType(name, type_var);
     }
-
+		
+		void PatchAddOrDieFunction(const char * name, int addr, int nbParam){
+			S_Functions * temp = getFunctionByName(name);
+			if (temp != NULL){
+				if (temp->addr != -1){
+					//Already defined &/or patched
+//					yyerror("Function '%s' already defined", name);
+					printf("ERRROR");
+				}else{
+					patchSpecFunction(temp,addr);
+				}
+			}else{
+				createDeclarativeFunction(name,addr,nbParam);
+			}
+		}
 %}
 
 %union{
@@ -82,6 +97,10 @@
 
 %type <type> TypeSpecifier
 %type <type> FinalType
+
+%type <nbr> Params
+%type <nbr> ParamsNamedList
+%type <nbr> ParamsUnnamedList
 
 %token tMAIN tPRINTF tSCANF
 %token tCONST tINT tVOID tCHAR tENUM tBOOL
@@ -143,8 +162,11 @@ Program :         ExternalDeclaration
 ExternalDeclaration : FunctionDefinition
                     | Declaration;
 
-FunctionDefinition : FinalType tID '(' Params ')' FunctionStatementCompound
-                   | FinalType tID '(' Params ')' End;
+PushBlocFunction: {pushBlock();}
+// Verify if body not inserted yet
+// 
+FunctionDefinition : FinalType tID '(' PushBlocFunction Params ')' {PatchAddOrDieFunction($2,count_assembly,$5);} FunctionStatementCompound
+                   | FinalType tID '(' PushBlocFunction Params ')' End  { popBlock(); createSpecFunction($2,$5);};
 
 TypeSpecifier : tINT  { $$ = type_var = Integer; }
               | tVOID { $$ = type_var = Void; }
@@ -181,20 +203,20 @@ Declaration : FinalType TypedDeclaration;
 
 // int a, char c, ...
 // Left recursion is better than right recursion for memory management (not so much 'shift' before reduce-ing)
-ParamsNamedList :                     ParamNamed
-                | ParamsNamedList ',' ParamNamed;
+ParamsNamedList :                     ParamNamed { $$=$$+1; }
+                | ParamsNamedList ',' ParamNamed { $$=$$+1; };
 
 ParamNamed : FinalType tID { addVarWithType($2, $1); };
 
 // int, char, ...
-ParamsUnnamedList :                       ParamUnnamed
-                  | ParamsUnnamedList ',' ParamUnnamed;
+ParamsUnnamedList :                       ParamUnnamed { $$=$$+1; }
+                  | ParamsUnnamedList ',' ParamUnnamed { $$=$$+1; };
 
 ParamUnnamed : FinalType;
 
-Params :                   { implementation_enabled = 1; }
-       | ParamsNamedList   { implementation_enabled = 1; }
-       | ParamsUnnamedList { implementation_enabled = 0; };
+Params :                   { implementation_enabled = 1; $$= 0; }
+       | ParamsNamedList   { implementation_enabled = 1; $$=$1; }
+       | ParamsUnnamedList { implementation_enabled = 0; $$=$1; };
 
 Constant : tNBR {
                          $$ = createConstant(Integer, $1);
@@ -489,7 +511,7 @@ StatementLabeled : tID ':' Statement
                  | tCASE ExpressionConstant ':' Statement
                  | tDEFAULT ':' Statement;
 
-FunctionStatementCompoundFactor : '{' { pushBlock(); } { if (implementation_enabled == 0) { yyerror("parameter name ommitted"); } };
+FunctionStatementCompoundFactor : '{' { if (implementation_enabled == 0) { yyerror("parameter name ommitted"); } };
 
 FunctionStatementCompound : FunctionStatementCompoundFactor               '}' { popBlock(); }
                           | FunctionStatementCompoundFactor BlockItemList '}' { popBlock(); };
@@ -539,7 +561,7 @@ StatementJump : tCONTINUE End
 
 int main(int argc, char const **argv) {
     initSymbolTable();
-
+		initFunctionsTable();
     char *outputPath = strdup("build/a.s");
     initAssemblyOutput(outputPath);
 
@@ -547,9 +569,10 @@ int main(int argc, char const **argv) {
 
     closeAssemblyOutput(outputPath);
     free(outputPath);
-
+		printFunctionsTable();
+		resetFunctionsTable();
     resetSymbolTable();
-
+		
     if(errorsOccured() > 0) {
         fprintf(stderr, "\x1b[0m\x1b[41m%d errors occured during compilation, which is aborted.\x1b[0m\n", errorsOccured());
         return FAILURE_COMPILATION;
