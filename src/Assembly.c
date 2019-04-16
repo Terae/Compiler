@@ -33,7 +33,7 @@ void initAssemblyOutput(const char *path) {
     }
     bufferAssembly = malloc(1);
     bufferAssembly[0] = '\0';
-    count_assembly = 0;
+    count_assembly = 1;
 }
 
 void closeAssemblyOutput(const char *path) {
@@ -87,7 +87,7 @@ char *getNthOccurence(char *str, char c, int n) {
     char *result = NULL;
 
     while (str != NULL && result == NULL) {
-        if (n-- == 0) {
+        if (n-- == 1) {
             result = str;
         }
         str = strchr(str, c) + 1;
