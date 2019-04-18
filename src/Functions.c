@@ -83,7 +83,7 @@ S_Functions *  getFunctionByName(const char * name){
   if (FunctionTable != NULL){
     if (FunctionTable->head != NULL){
 			aux = FunctionTable->head;
-      while (aux->next != NULL){
+      while (aux != NULL){
         if (strcmp(aux->name,name)==0){
           return aux;
         }
@@ -97,12 +97,15 @@ S_Functions *  getFunctionByName(const char * name){
 void printFunctionsTable(){
 	S_Functions * aux = NULL;
   if (FunctionTable != NULL){
+		printf("\n\033[0;31m/*****************************************************/\n");
+		printf("Size : %d\n",FunctionTable->size);
     if (FunctionTable->head != NULL){
 			aux = FunctionTable->head;
       while (aux != NULL){
 				printf("Functions : %s at %d\n",aux->name,aux->addr);
         aux=aux->next;
       }
+			printf("/*****************************************************/\033[0m\n\n");
     }else{
 			printf("Table function empty\n");
 		}

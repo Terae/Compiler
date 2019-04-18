@@ -45,7 +45,7 @@ run: build
 	$(BUILD_DIR)/$(PROG_NAME) < $(TEST_DIR)/input.c
 
 # Automatic testing all the syntax
-TestsNoGood:=$(shell cd $(TEST_DIR); ls impostor_C | egrep '^[0-9]+' | sort -n )
+TestsNoGood:=$(shell cd  $(TEST_DIR); ls impostor_C | egrep '^[0-9]+' | sort -n )
 TestsGood  :=$(shell cd $(TEST_DIR); ls legitime_C | egrep '^[0-9]+' | sort -n )
 test: build
 	$(foreach file, $(TestsNoGood), $(SHELL) $(CHECKER) $(BUILD_DIR)/$(PROG_NAME) $(TEST_DIR)/impostor_C/$(file) 0; )
@@ -57,4 +57,7 @@ interpreter: $(SOURCE_DIR)/Interpreter.c
 
 all: build interpreter run
 
+valgrind: build interpreter
+	valgrind $(BUILD_DIR)/$(PROG_NAME) < $(TEST_DIR)/input.c
+	
 $(V).SILENT:

@@ -82,9 +82,8 @@ numberExp       {digit}+(\.{digit}+)?([eE][+\-]?{digit}+)?
                         }
                         yylval.string = val;
                         return tCHAR_LITERAL;
+							//"main"          {echo; return tID;}
                     }
-
-"main"          {echo; return tID;}
 "printf"        {echo; return tPRINTF;}
 "scanf"         {echo; return tSCANF;}
 

@@ -202,21 +202,21 @@ char *typeToString(T_Type type) {
 
 void printSymbolTable() {
     if (SymbolTable != NULL) {
-        printf("\n/************************************************************************/\n");
+        printf("\n\033[0;32m/************************************************************************/\n");
         printf("Size : %d \n", SymbolTable->size);
         printf("-------------------------------------------------------------------------\n");
         S_SYMBOL *aux = SymbolTable->head;
         while (aux != NULL) {
             printf("Index: %d,\tvarname: '%s',\taddress: %d,\tType: %s,\tdepth: %d\n",
                    aux->index,
-                   (strcmp(aux->name, tmpSymbol) == 0 ? "\x1b[3m\x1b[4mtmp\x1b[0m" : aux->name),
+                   (strcmp(aux->name, tmpSymbol) == 0 ? "\x1b[3m\x1b[4mtmp\x1b[0m\033[0;32m" : aux->name),
                    aux->addr,
                    typeToString(aux->type),
                    aux->depth);
             printf("-------------------------------------------------------------------------\n");
             aux = aux->next;
         }
-        printf("\n/************************************************************************/\n\n");
+        printf("/************************************************************************/\033[0m\n\n");
     }
 }
 

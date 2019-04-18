@@ -16,7 +16,7 @@ file="$2"
 checker="$3"
 result=$("${program}" < "${file}" 2>&1 | egrep "ERROR")
 if ([ "${result}" = "" ] && [ "${checker}" = "1" ]) || ([ "${result}" != "" ] && [ "${checker}" = "0" ]); then
-    echo -e "${file} ${Green}PASSES${End}"
+		printf "%-50s ${Green}PASSES${End}\n" "${file}"
 else
-    echo -e "${file} ${Red}FAILS${End}"
+    printf "%-50s ${Red}FAILS ${End}\n" "${file}"
 fi

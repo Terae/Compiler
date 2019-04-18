@@ -48,14 +48,14 @@
 			if (temp != NULL){
 				if (temp->addr != -1){
 					//Already defined &/or patched
-//					yyerror("Function '%s' already defined", name);
-					printf("ERRROR");
+					yyerror("Function '%s' already defined at %d", name,temp->addr);
 				}else{
 					patchSpecFunction(temp,addr);
 				}
 			}else{
 				createDeclarativeFunction(name,addr,nbParam);
 			}
+			printFunctionsTable();
 		}
 %}
 
@@ -163,10 +163,15 @@ ExternalDeclaration : FunctionDefinition
                     | Declaration;
 
 PushBlocFunction: {pushBlock();}
+
+
 // Verify if body not inserted yet
-// 
-FunctionDefinition : FinalType tID '(' PushBlocFunction Params ')' {PatchAddOrDieFunction($2,count_assembly,$5);} FunctionStatementCompound
-                   | FinalType tID '(' PushBlocFunction Params ')' End  { popBlock(); createSpecFunction($2,$5);};
+FunctionDefinition : FinalType tID '(' PushBlocFunction Params ')' { PatchAddOrDieFunction($2,count_assembly,$5); } FunctionStatementCompound
+                   | FinalType tID '(' PushBlocFunction Params ')' End  { popBlock(); createSpecFunction($2,$5); };
+
+FunctionCall : tID '(' ListArgument ')' End;
+ListArgument: ExpressionPrimary
+						|ExpressionPrimary ',' ListArgument
 
 TypeSpecifier : tINT  { $$ = type_var = Integer; }
               | tVOID { $$ = type_var = Void; }
@@ -569,7 +574,7 @@ int main(int argc, char const **argv) {
 
     closeAssemblyOutput(outputPath);
     free(outputPath);
-		printFunctionsTable();
+
 		resetFunctionsTable();
     resetSymbolTable();
 		
