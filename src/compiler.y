@@ -71,6 +71,7 @@
 %token <string> tCHAR_LITERAL
 %token <string> tSTRING_LITERAL
 
+
 %type <nbr> tDO
 %type <nbr> '('
 %type <nbr> ')'
@@ -258,6 +259,15 @@ ExpressionPrimary : tID {
                         }
                   | Constant
                   | '(' Expression ')' { $$ = $2; }
+									| tID '(' ListExpressionPrimary ')' { S_Functions * f = getFunctionByName($1);
+	if (f == NULL){
+		yyerror("Unknown function '%s'", $1);
+	}
+ } ;
+
+ListExpressionPrimary:
+										 | ExpressionPrimary
+										 | ExpressionPrimary ',' ListExpressionPrimary;
 
 ExpressionPostfix : ExpressionPrimary
                   | ExpressionPostfix '{' { pushBlock(); } Expression '}' { popBlock(); }
@@ -570,8 +580,18 @@ int main(int argc, char const **argv) {
     char *outputPath = strdup("build/a.s");
     initAssemblyOutput(outputPath);
 
-    yyparse();
-
+		// Init esp
+		writeAssembly(AFC" %s %d",esp, getESP());
+		// Jump to main (undefined addr)
+		writeAssembly(JMP" NULL");
+		yyparse();
+		
+		S_Functions * main=getFunctionByName("main");
+		if (main != NULL){
+			patchJumpAssembly(1,main->addr);
+		}else{
+			yyerror("Error missing function main !");
+		}
     closeAssemblyOutput(outputPath);
     free(outputPath);
 

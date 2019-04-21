@@ -20,6 +20,9 @@ void freeSymbol(S_SYMBOL *tofree) {
     free(tofree);
 }
 
+address_t getESP(){
+	return ESP;
+}
 /**
  * @description Initialize a symbols List
  */

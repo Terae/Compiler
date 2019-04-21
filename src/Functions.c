@@ -56,6 +56,7 @@ S_Functions * createSpecFunction(const char *name, unsigned int nbParam){
       FunctionTable->head=aux;
     }
     FunctionTable->size+=1;
+		//printf("Aux inserted at %d____",aux->addr);
   }
  	return aux;
 }
