@@ -1,7 +1,3 @@
-int function_call(){
-	return 0;
-}
-
 int main() {
     // tmp: function declaration
     int function_call;

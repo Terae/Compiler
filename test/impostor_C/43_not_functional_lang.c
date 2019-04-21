@@ -1,9 +1,8 @@
-int function(int a){
-	return a;
-}
-
 int main() {
-		while(true) { }
+    // tmp: function declaration
+    int function;
+
+    while(true) { }
 
     while(function(5)) {
         int a = 5;
