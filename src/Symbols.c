@@ -11,6 +11,7 @@
 
 static L_SYMBOL *SymbolTable = NULL;
 static address_t ESP = 4000;
+static address_t ESP_pers=0;
 static char *tmpSymbol;
 
 void freeSymbol(S_SYMBOL *tofree) {
@@ -77,7 +78,7 @@ S_SYMBOL *createSymbol(const char *name, T_Type type) {
 
         symbol = malloc(sizeof(S_SYMBOL));
         symbol->index = SymbolTable->size;
-        symbol->addr = ESP;
+        symbol->addr = ESP_pers;
         symbol->depth = SymbolTable->depth;
         symbol->name = strdup(name);
         symbol->type = type;
@@ -87,7 +88,7 @@ S_SYMBOL *createSymbol(const char *name, T_Type type) {
 
         SymbolTable->size++;
 
-        ESP += getSymbolSize(symbol);
+        ESP_pers += getSymbolSize(symbol);
     }
     return symbol;
 }
@@ -99,7 +100,7 @@ void popHead() {
     if (SymbolTable != NULL && SymbolTable->head != NULL) {
         do {
             S_SYMBOL *aux = SymbolTable->head;
-            ESP -= getSymbolSize(aux);
+            ESP_pers -= getSymbolSize(aux);
             SymbolTable->head = aux->next;
             freeSymbol(aux);
             SymbolTable->size -= 1;
