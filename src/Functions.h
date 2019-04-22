@@ -7,11 +7,11 @@
 
 
 
-typedef struct f{
+typedef struct func{
     int addr;
     char * name;
     unsigned int nbParam;
-    struct f * next;
+    struct func * next;
 } S_Functions;
 
 typedef struct {

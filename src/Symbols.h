@@ -71,5 +71,7 @@ S_SYMBOL *getSymbolByIndex(unsigned int index);
 
 S_SYMBOL *getLastSymbol(void);
 
+address_t getESP();
+
 #endif //AUL_SYMBOLS_H
 

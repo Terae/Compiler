@@ -63,6 +63,7 @@
     int nbr;
     char *string;
     struct Symbol *symbol;
+		struct func * func;
     enum Type type;
 }
 
@@ -94,7 +95,6 @@
 %type <symbol> ExpressionConditional
 %type <symbol> ExpressionAssignment
 %type <symbol> Expression
-%type <symbol> ExpressionConstant
 
 %type <type> TypeSpecifier
 %type <type> FinalType
@@ -102,6 +102,7 @@
 %type <nbr> Params
 %type <nbr> ParamsNamedList
 %type <nbr> ParamsUnnamedList
+%type <func> FunctionCall
 
 %token tMAIN tPRINTF tSCANF
 %token tCONST tINT tVOID tCHAR tENUM tBOOL
@@ -170,9 +171,17 @@ PushBlocFunction: {pushBlock();}
 FunctionDefinition : FinalType tID '(' PushBlocFunction Params ')' { PatchAddOrDieFunction($2,count_assembly,$5); } FunctionStatementCompound
                    | FinalType tID '(' PushBlocFunction Params ')' End  { popBlock(); createSpecFunction($2,$5); };
 
-FunctionCall : tID '(' ListArgument ')' End;
-ListArgument: ExpressionPrimary
-						|ExpressionPrimary ',' ListArgument
+FunctionCall : tID '(' ListArgument ')' { S_Functions * f = getFunctionByName($1);
+	if (f == NULL){
+		yyerror("Unknown function '%s'", $1);
+	}else{
+		$$= f;
+	}
+ };
+
+ListArgument :
+						 | Expression
+						 | Expression ',' ListArgument;
 
 TypeSpecifier : tINT  { $$ = type_var = Integer; }
               | tVOID { $$ = type_var = Void; }
@@ -259,15 +268,7 @@ ExpressionPrimary : tID {
                         }
                   | Constant
                   | '(' Expression ')' { $$ = $2; }
-									| tID '(' ListExpressionPrimary ')' { S_Functions * f = getFunctionByName($1);
-	if (f == NULL){
-		yyerror("Unknown function '%s'", $1);
-	}
- } ;
-
-ListExpressionPrimary:
-										 | ExpressionPrimary
-										 | ExpressionPrimary ',' ListExpressionPrimary;
+									| FunctionCall;
 
 ExpressionPostfix : ExpressionPrimary
                   | ExpressionPostfix '{' { pushBlock(); } Expression '}' { popBlock(); }
@@ -509,22 +510,15 @@ ExpressionAssignment : ExpressionConditional
                                 $$ = $1;
                         };
 
-Expression :                ExpressionAssignment
-           | Expression ',' ExpressionAssignment;
-
-ExpressionConstant : ExpressionConditional;
+Expression : ExpressionAssignment ',' Expression 
+					 | ExpressionAssignment ;
 
 /// Statements
-Statement : StatementLabeled
-          | StatementCompound
+Statement : StatementCompound
           | StatementExpression
           | StatementSelection
           | StatementIteration
           | StatementJump;
-
-StatementLabeled : tID ':' Statement
-                 | tCASE ExpressionConstant ':' Statement
-                 | tDEFAULT ':' Statement;
 
 FunctionStatementCompoundFactor : '{' { if (implementation_enabled == 0) { yyerror("parameter name ommitted"); } };
 
@@ -552,7 +546,7 @@ StatementExpression : End
                                 writeAssembly(SCANF" %s", r0);
                                 writeAssembly(STORE" %d, %s", id->addr, r0);
                             }
-                        }
+                        } ;
 
 StatementSelectionFactor: { writeDebug("IF"); writeAssembly(LOAD" %s, %d", r0, ($<symbol>-1)->addr); ($<nbr>-2) = count_assembly; writeAssembly(JMPC" NULL, %s", r0); };
 
@@ -586,9 +580,9 @@ int main(int argc, char const **argv) {
 		writeAssembly(JMP" NULL");
 		yyparse();
 		
-		S_Functions * main=getFunctionByName("main");
-		if (main != NULL){
-			patchJumpAssembly(1,main->addr);
+		S_Functions * mainFunc=getFunctionByName("main");
+		if (mainFunc != NULL){
+			patchJumpAssembly(1,mainFunc->addr);
 		}else{
 			yyerror("Error missing function main !");
 		}
