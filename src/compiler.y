@@ -103,6 +103,7 @@
 %type <nbr> ParamsNamedList
 %type <nbr> ParamsUnnamedList
 %type <func> FunctionCall
+%type <nbr> ArgumentExpressionList
 
 %token tMAIN tPRINTF tSCANF
 %token tCONST tINT tVOID tCHAR tENUM tBOOL
@@ -171,17 +172,19 @@ PushBlocFunction: {pushBlock();}
 FunctionDefinition : FinalType tID '(' PushBlocFunction Params ')' { PatchAddOrDieFunction($2,count_assembly,$5); } FunctionStatementCompound
                    | FinalType tID '(' PushBlocFunction Params ')' End  { popBlock(); createSpecFunction($2,$5); };
 
-FunctionCall : tID '(' ListArgument ')' { S_Functions * f = getFunctionByName($1);
+FunctionCall : tID '(' ArgumentExpressionList ')' { S_Functions * f = getFunctionByName($1);
 	if (f == NULL){
 		yyerror("Unknown function '%s'", $1);
 	}else{
-		$$= f;
+		if (f->addr != -1){
+			$$= f;
+			writeAssembly(PUSH" %d ",count_assembly+1);
+			writeAssembly(JMP" %d ",f->addr);
+		}else{
+			yyerror("Calling to an missing body function '%s'\n",f->name);
+		}
 	}
  };
-
-ListArgument :
-						 | Expression
-						 | Expression ',' ListArgument;
 
 TypeSpecifier : tINT  { $$ = type_var = Integer; }
               | tVOID { $$ = type_var = Void; }
@@ -272,12 +275,12 @@ ExpressionPrimary : tID {
 
 ExpressionPostfix : ExpressionPrimary
                   | ExpressionPostfix '{' { pushBlock(); } Expression '}' { popBlock(); }
-                  | ExpressionPostfix '(' ')'
-                  | ExpressionPostfix '(' ArgumentExpressionList ')'
                   | ExpressionPostfix '.' tID
                   | ExpressionPostfix tPTR_OP tID
                   | ExpressionPostfix tINCR
                           {
+                  					//| ExpressionPostfix '(' ')'
+														//| ExpressionPostfix '(' ArgumentExpressionList ')'
                                 writeDebug("postfix increment");
                                 S_SYMBOL *left = $1; // getLastSymbol();
                                 S_SYMBOL *copy = addVarWithType("", left->type);
@@ -299,8 +302,9 @@ ExpressionPostfix : ExpressionPrimary
                                 $$ = copy;
                         };
 
-ArgumentExpressionList :                            ExpressionAssignment
-                       | ArgumentExpressionList ',' ExpressionAssignment;
+ArgumentExpressionList :											{ $$ = 0;      }
+											 | ExpressionAssignment { $$ = 1; }
+                       | ExpressionAssignment ',' ArgumentExpressionList {$$=$3+1;} ;
 
 ExpressionUnary : ExpressionPostfix
                 | tINCR   ExpressionUnary

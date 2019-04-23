@@ -1,6 +1,13 @@
+int function(){
+	return 0;
+}
+int other_function(){
+	return 1;
+}
+
 int main() {
     // tmp: declaration of functions ID
-    int function, other_function, variable, var, toto;
+    int variable, var, toto;
 
     int a;
     a = 2;
