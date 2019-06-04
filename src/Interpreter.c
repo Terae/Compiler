@@ -259,8 +259,10 @@ void interprete(const char *path) {
             }
             case COP: {
                 READ_TWO(STRINGIFY(COP));
-                *get_memory(arg1) = *get_memory(arg2);
-                debug_print_op(STRINGIFY(COP), "@%d <- @%d", arg1, arg2);
+                //*get_memory(arg1) = *get_memory(arg2);
+                //debug_print_op(STRINGIFY(COP), "@%d <- @%d", arg1, arg2);
+                // COPY isn't memory but registers.
+                debug_print_op(STRINGIFY(COP), "%d <- %d", arg1, arg2);
                 break;
             }
             case AFC: {

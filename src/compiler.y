@@ -30,41 +30,47 @@
         if(strcmp(name, "") == 0) {
             symbol = createTmpSymbol(type);
         } else {
-            symbol = createSymbol(name, type);
+            symbol = createSymbol(name, type, type_qualifier);
         }
 
-        if (symbol != NULL) {
-            printSymbolTable();
-        }
         return symbol;
     }
 
     S_SYMBOL *addVar(const char *name) {
         return addVarWithType(name, type_var);
     }
-		
-		void PatchAddOrDieFunction(const char * name, int addr, int nbParam){
-			S_Functions * temp = getFunctionByName(name);
-			if (temp != NULL){
-				if (temp->addr != -1){
-					//Already defined &/or patched
-					yyerror("Function '%s' already defined at %d", name,temp->addr);
-				}else{
-					patchSpecFunction(temp,addr);
-				}
-			}else{
-				createDeclarativeFunction(name,addr,nbParam);
-			}
-			printFunctionsTable();
-		}
+    
+    void PatchAddOrDieFunction(const char * name, int addr, int nbParam){
+      S_Functions * temp = getFunctionByName(name);
+      if (temp != NULL){
+        if (temp->addr != -1){
+          //Already defined &/or patched
+          yyerror("Function '%s' already defined at %d", name,temp->addr);
+        }else{
+          patchSpecFunction(temp,addr);
+        }
+      }else{
+        createDeclarativeFunction(name,addr,nbParam);
+      }
+      printFunctionsTable();
+    }
+    void handleArgumentsFunctions(S_SYMBOL * symb){
+      if (!isTmp(symb)){
+        printf("Not tmp symbol %s\n",symb->name);
+        S_SYMBOL * pseudotmp = createTmpSymbolFromSymbol(symb);
+        writeAssembly(LOAD" %s %d",tmpR,symb->addr);
+        writeAssembly(STORE" %d %s ; copie de %s dans tmp",pseudotmp->addr,tmpR,symb->name);
+      }
+    }
 %}
 
 %union{
     int nbr;
     char *string;
     struct Symbol *symbol;
-		struct func * func;
+    struct func * func;
     enum Type type;
+		enum Qualifier qualifier;
 }
 
 %token <nbr>    tNBR
@@ -172,18 +178,19 @@ PushBlocFunction: {pushBlock();}
 FunctionDefinition : FinalType tID '(' PushBlocFunction Params ')' { PatchAddOrDieFunction($2,count_assembly,$5); } FunctionStatementCompound
                    | FinalType tID '(' PushBlocFunction Params ')' End  { popBlock(); createSpecFunction($2,$5); };
 
-FunctionCall : tID '(' ArgumentExpressionList ')' { S_Functions * f = getFunctionByName($1);
-	if (f == NULL){
-		yyerror("Unknown function '%s'", $1);
-	}else{
-		if (f->addr != -1){
-			$$= f;
-			writeAssembly(PUSH" %d ",count_assembly+1);
-			writeAssembly(JMP" %d ",f->addr);
-		}else{
-			yyerror("Calling to an missing body function '%s'\n",f->name);
-		}
-	}
+FunctionCall : tID {pushBlock();is_in_function_call=1;} '(' ArgumentExpressionList ')' { printSymbolTable(); is_in_function_call=0;popBlock();S_Functions * f = getFunctionByName($1);
+  if (f == NULL){
+    yyerror("Unknown function '%s'", $1);
+  }else{
+    if (f->addr != -1){
+      $$ = f;
+      writeAssembly(AFC" 0, %d ; nbParam in 0",f->nbParam);
+      writeAssembly(ADD" %s, XX  ; Increase ebp",esp,f->nbParam);
+      writeAssembly(JMP" %d    ; jump to %s",f->addr,f->name);
+    }else{
+      yyerror("Calling to an missing body function '%s'\n",f->name);
+    }
+  }
  };
 
 TypeSpecifier : tINT  { $$ = type_var = Integer; }
@@ -266,12 +273,18 @@ ExpressionPrimary : tID {
                                 if (id == NULL) {
                                     yyerror("Unknown id: '%s'", $1);
                                 } else {
-                                    $$ = id;
+                                    if (is_in_function_call){
+                                      //$$ = id;
+																			$$ = createTmpSymbolFromSymbol(id);
+                                      //handleArgumentsFunctions(id);
+                                    }else{
+                                      $$ = id;
+                                    }
                                 }
                         }
                   | Constant
                   | '(' Expression ')' { $$ = $2; }
-									| FunctionCall;
+                  | FunctionCall;
 
 ExpressionPostfix : ExpressionPrimary
                   | ExpressionPostfix '{' { pushBlock(); } Expression '}' { popBlock(); }
@@ -279,8 +292,8 @@ ExpressionPostfix : ExpressionPrimary
                   | ExpressionPostfix tPTR_OP tID
                   | ExpressionPostfix tINCR
                           {
-                  					//| ExpressionPostfix '(' ')'
-														//| ExpressionPostfix '(' ArgumentExpressionList ')'
+                            //| ExpressionPostfix '(' ')'
+                            //| ExpressionPostfix '(' ArgumentExpressionList ')'
                                 writeDebug("postfix increment");
                                 S_SYMBOL *left = $1; // getLastSymbol();
                                 S_SYMBOL *copy = addVarWithType("", left->type);
@@ -302,8 +315,8 @@ ExpressionPostfix : ExpressionPrimary
                                 $$ = copy;
                         };
 
-ArgumentExpressionList :											{ $$ = 0;      }
-											 | ExpressionAssignment { $$ = 1; }
+ArgumentExpressionList :                      { $$ = 0;      }
+                       | ExpressionAssignment { $$ = 1;}
                        | ExpressionAssignment ',' ArgumentExpressionList {$$=$3+1;} ;
 
 ExpressionUnary : ExpressionPostfix
@@ -515,7 +528,7 @@ ExpressionAssignment : ExpressionConditional
                         };
 
 Expression : ExpressionAssignment ',' Expression 
-					 | ExpressionAssignment ;
+           | ExpressionAssignment ;
 
 /// Statements
 Statement : StatementCompound
@@ -547,8 +560,8 @@ StatementExpression : End
                             if (id == NULL) {
                                 yyerror("Unknown id: '%s'", $4);
                             } else {
-                                writeAssembly(SCANF" %s", r0);
-                                writeAssembly(STORE" %d, %s", id->addr, r0);
+                                writeAssembly(SCANF" %s", tmpR);
+                                writeAssembly(STORE" %d, %s", id->addr, tmpR);
                             }
                         } ;
 
@@ -568,34 +581,34 @@ StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expressio
 StatementJump : tCONTINUE End
               | tBREAK End
               | tRETURN End
-              | tRETURN Expression End;
+              | tRETURN Expression End {writeAssembly("RETURN "); printf ("Value to return named %s\n", $2->name);};
 
 %%
 
 int main(int argc, char const **argv) {
     initSymbolTable();
-		initFunctionsTable();
+    initFunctionsTable();
     char *outputPath = strdup("build/a.s");
     initAssemblyOutput(outputPath);
 
-		// Init esp
-		writeAssembly(AFC" %s, %d",esp, getESP());
-		// Jump to main (undefined addr)
-		writeAssembly(JMP" NULL");
-		yyparse();
-		
-		S_Functions * mainFunc=getFunctionByName("main");
-		if (mainFunc != NULL){
-			patchJumpAssembly(1,mainFunc->addr);
-		}else{
-			yyerror("Error missing function main !");
-		}
+    // Init esp
+    writeAssembly(AFC" %s %d",esp, getESP());
+    // Jump to main (undefined addr)
+    writeAssembly(JMP" NULL");
+    yyparse();
+    
+    S_Functions * mainFunc=getFunctionByName("main");
+    if (mainFunc != NULL){
+      patchJumpAssembly(1, mainFunc->addr);
+    }else{
+      yyerror("Error missing function main !");
+    }
     closeAssemblyOutput(outputPath);
     free(outputPath);
 
-		resetFunctionsTable();
+    resetFunctionsTable();
     resetSymbolTable();
-		
+    
     if(errorsOccured() > 0) {
         fprintf(stderr, "\x1b[0m\x1b[41m%d errors occured during compilation, which is aborted.\x1b[0m\n", errorsOccured());
         return FAILURE_COMPILATION;

@@ -120,17 +120,16 @@ void patchJumpAssembly(int assembly_line, int patch_addr) {
 }
 
 S_SYMBOL *binaryOperation(const char *op, S_SYMBOL *s1, S_SYMBOL *s2) {
-    S_SYMBOL *result = createTmpSymbol(s1->type);
 
-    writeDebug("operation %s", op);
+    //writeDebug("operation %s", op);
     writeAssembly(LOAD" %s, %d", r1, s1->addr);
     writeAssembly(LOAD" %s, %d", r2, s2->addr);
     writeAssembly("%s %s, %s, %s", op, r0, r1, r2);
-    writeAssembly(STORE" %d, %s", result->addr, r0);
     //writeAssembly("%s %d %d %d", op, result->addr, s1->addr, s2->addr);
     freeIfTmp(s2);
     freeIfTmp(s1);
-
+    S_SYMBOL *result = createTmpSymbol(s1->type);
+    writeAssembly(STORE" %d, %s", result->addr, r0);
     //int lastIndex = TabSymbol->size - 1;
     //int addrLeft = getAddrByIndex(TabSymbol, lastIndex - 1);
     //int addrRight = getAddrByIndex(TabSymbol, lastIndex);
@@ -161,17 +160,27 @@ void affectation(S_SYMBOL *id, S_SYMBOL *value) {
         return;
     }
 
+    if (isConst(id)) {
+        yyerror("Impossible to assign the result to a const value.");
+        return;
+    }
+
 #if defined(DEBUG)
-    writeAssembly(COP" %d, %d ; %s", id->addr, value->addr, id->name);
+    //writeAssembly(COP" %d, %d ; %s", id->addr, value->addr, id->name);
+    writeAssembly(LOAD" %s, %d ; get tempVar %d", tmpR, value->addr, value->addr);
+    writeAssembly(STORE" %d, %s ; into var %s", id->addr, tmpR, id->name);
 #else
-    writeAssembly(COP" %d, %d", id->addr, value->addr);
+    writeAssembly(LOAD" %s, %d", tmpR, value->addr);
+    writeAssembly(STORE" %d, %s", id->addr, tmpR);
+
+    //writeAssembly(COP" %d, %d", id->addr, value->addr);
 #endif
     freeIfTmp(value);
 }
 
 S_SYMBOL *createConstant(T_Type type, int value) {
     S_SYMBOL *symbol = createTmpSymbol(type);
-    writeDebug("create a '%s' const symbol with value %d", typeToString(type), value);
+    //    writeDebug("create a '%s' const symbol with value %d", typeToString(type), value);
     writeAssembly(AFC" %s, %d", r0, value);
     writeAssembly(STORE" %d, %s", symbol->addr, r0);
     printSymbolTable();

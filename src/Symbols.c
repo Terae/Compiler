@@ -11,7 +11,7 @@
 
 static L_SYMBOL *SymbolTable = NULL;
 static address_t ESP = 4000;
-static address_t ESP_pers=0;
+static address_t ESP_pers = 0;
 static char *tmpSymbol;
 
 void freeSymbol(S_SYMBOL *tofree) {
@@ -21,8 +21,8 @@ void freeSymbol(S_SYMBOL *tofree) {
     free(tofree);
 }
 
-address_t getESP(){
-	return ESP;
+address_t getESP() {
+    return ESP;
 }
 /**
  * @description Initialize a symbols List

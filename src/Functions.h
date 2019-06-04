@@ -7,11 +7,11 @@
 
 
 
-typedef struct func{
+typedef struct func {
     int addr;
-    char * name;
+    char *name;
     unsigned int nbParam;
-    struct func * next;
+    struct func *next;
 } S_Functions;
 
 typedef struct {
@@ -23,13 +23,13 @@ void initFunctionsTable(void);
 
 void resetFunctionsTable(void);
 
-S_Functions * createSpecFunction(const char *name, unsigned int nbParam);
+S_Functions *createSpecFunction(const char *name, unsigned int nbParam);
 
-void patchSpecFunction(S_Functions * f, int addr);
+void patchSpecFunction(S_Functions *f, int addr);
 
-S_Functions * createDeclarativeFunction(const char *name, int addr, unsigned int nbParam);
+S_Functions *createDeclarativeFunction(const char *name, int addr, unsigned int nbParam);
 
-S_Functions *  getFunctionByName(const char * name);
+S_Functions   *getFunctionByName(const char *name);
 
 void printFunctionsTable();
 #endif //COMPILER_FUNCTIONS_H
