@@ -17,13 +17,18 @@ typedef enum Type {
     Error
 } T_Type;
 
+typedef enum Qualifier {
+    Nothing,
+    Const
+} T_Qualifier;
+
 typedef struct Symbol {
     unsigned int index;
     address_t addr;
     char *name;
     T_Type type;
-    /*int isConst;
-    int isInitialized;*/
+    T_Qualifier qualifier;
+    // int isInitialized;
     unsigned int depth;
     struct Symbol *next;
 } S_SYMBOL;

@@ -56,7 +56,7 @@ void resetSymbolTable(void) {
  * @param type enum T_Type Variable's type
  * @return A pointer to the created symbol
  */
-S_SYMBOL *createSymbol(const char *name, T_Type type) {
+S_SYMBOL *createSymbol(const char *name, T_Type type, T_Qualifier qualifier) {
     if (strcmp(name, "") == 0) {
         yyerror("Empty variable name forbidden");
         return NULL;
@@ -82,6 +82,7 @@ S_SYMBOL *createSymbol(const char *name, T_Type type) {
         symbol->depth = SymbolTable->depth;
         symbol->name = strdup(name);
         symbol->type = type;
+        symbol->qualifier = qualifier;
 
         symbol->next = SymbolTable->head;
         SymbolTable->head = symbol;
@@ -132,7 +133,11 @@ void popBlock() {
 }
 
 S_SYMBOL *createTmpSymbol(T_Type type) {
-    return createSymbol(tmpSymbol, type);
+    return createSymbol(tmpSymbol, type, Nothing);
+}
+
+S_SYMBOL *createTmpSymbolFromSymbol(S_SYMBOL *symb) {
+    return createSymbol(tmpSymbol, symb->type, Nothing);
 }
 
 /**
@@ -156,6 +161,10 @@ void popOneTmp(void) {
             popHead();
         }
     }
+}
+
+int isConst(S_SYMBOL *s) {
+    return s->qualifier == Const;
 }
 
 int isTmp(S_SYMBOL *s) {
@@ -184,10 +193,11 @@ int getSymbolSize(const S_SYMBOL *s) {
         case Void:
         case Error:
         default:
-            yyerror("Impossible to find the size of the symbol %s", s->name);
+            yyerror("Impossible to find the size of the symbol %s=%d", s->name, s->type);
             return 0;
     }
 }
+
 
 char *typeToString(T_Type type) {
     switch (type) {

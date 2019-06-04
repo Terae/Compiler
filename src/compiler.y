@@ -19,9 +19,11 @@
     int yylex(void);
 
     int implementation_enabled = 1;
+    int is_in_function_call = 0;
 
     // Global vars
     T_Type type_var;
+		T_Qualifier type_qualifier;
 
     /** Symbols **/
     // functions
@@ -105,6 +107,8 @@
 %type <type> TypeSpecifier
 %type <type> FinalType
 
+%type <qualifier> TypeQualifier
+
 %type <nbr> Params
 %type <nbr> ParamsNamedList
 %type <nbr> ParamsUnnamedList
@@ -163,7 +167,7 @@ End : error ';'
                 // yyerrok();
                 // enableErrorReporting();
         }
-    | ';' { popAllTmp(); };
+    | ';' { popAllTmp(); type_qualifier = Nothing; };
 
 Program :         ExternalDeclaration
         | Program ExternalDeclaration;
@@ -198,7 +202,7 @@ TypeSpecifier : tINT  { $$ = type_var = Integer; }
               | tCHAR { $$ = type_var = Character; }
               | tBOOL { $$ = type_var = Boolean; };
 
-TypeQualifier : tCONST;
+TypeQualifier : tCONST { $$ = type_qualifier = Const; };
 
 TypeQualifierList :                   TypeQualifier
                   | TypeQualifierList TypeQualifier;

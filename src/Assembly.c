@@ -146,7 +146,12 @@ S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *valu
         return NULL;
     }
 
-    writeDebug("%s assignment operation", op);
+    if (isConst(id)) {
+        yyerror("Impossible to assign the result to a const value.");
+        return NULL;
+    }
+
+    //writeDebug("%s assignment operation", op);
     writeAssembly(LOAD" %s, %d", r1, id->addr);
     writeAssembly(LOAD" %s, %d", r2, value->addr);
     writeAssembly("%s %d, %d, %d", op, id->addr, id->addr, value->addr);
