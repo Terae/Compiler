@@ -12,20 +12,13 @@ extern int count_assembly;
 #define TEXT_ASSEMBLY
 #define DEBUG
 
-#if defined(DEBUG)
-    #define r0  "r0"
-    #define r1  "r1"
-    #define r2  "r2"
-    #define esp "esp"
-    #define tmpR "tmpR"
-#else
-    #define r0  "00"
-    #define r1  "01"
-    #define r2  "02"
-    #define esp "03"
-    #define tmpR "04"
-#endif
 #if defined(TEXT_ASSEMBLY)
+
+    #define r0   "0"
+    #define r1   "1"
+    #define r2   "2"
+    #define esp  "3"
+    #define tmpR "4"
 
     #define ADD   "ADD  " // 0x01
     #define MUL   "MUL  " // 0x02
@@ -46,6 +39,7 @@ extern int count_assembly;
     #define PRINT "PRINT" // 0x0B
     #define SCANF "SCANF" // 0x0C
 
+    #define JMPR  "JMPR " // 0x0D
     #define JMP   "JMP  " // 0x0E
     #define JMPC  "JMPC " // 0x0F
 
@@ -53,6 +47,12 @@ extern int count_assembly;
     #define POP   "POP  " // 0x11
 
 #else // defined(TEXT_ASSEMBLY)
+
+    #define r0  "00"
+    #define r1  "01"
+    #define r2  "02"
+    #define esp "03"
+    #define tmpR "04"
 
     #define ADD   "0x01"
     #define MUL   "0x02"
@@ -73,11 +73,9 @@ extern int count_assembly;
     #define PRINT "0x0B"
     #define SCANF "0x0C"
 
+    #define JMPR  "0x0D"
     #define JMP   "0x0E"
     #define JMPC  "0x0F"
-
-    #define PUSH  "0x10"
-    #define POP   "0x11"
 
 #endif
 
@@ -115,3 +113,4 @@ S_SYMBOL *bitor(S_SYMBOL *s1, S_SYMBOL *s2);
 S_SYMBOL *powerOfTwo(S_SYMBOL *s);
 
 #endif //COMPILER_ASSEMBLY_H
+

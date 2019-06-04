@@ -18,6 +18,9 @@ PROG_NAME=YaccUza.out
 # yaccuza
 # duralex
 
+install:
+	sudo apt install bison flex
+
 clean:
 	rm -f $(SOURCE_DIR)/syntax.* $(BUILD_DIR)/$(LEX_OUTPUT) $(BUILD_DIR)/$(YACC_OUTPUT).* $(BUILD_DIR)/*.output $(BUILD_DIR)/$(PROG_NAME)
 	$(foreach file, $(SOURCE_FILES), rm -f $(BUILD_DIR)/$(file);)

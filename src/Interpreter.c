@@ -35,11 +35,9 @@
 #define PRINT 0xB
 #define SCANF 0xC
 
+#define JMPR  0xD
 #define JMP   0xE
 #define JMPC  0xF
-
-#define PUSH  0x10
-#define POP   0x11
 
 void print_help(const char *program) {
     fprintf(stderr, "Usage: %s <assembly_file.s>\n", program);
@@ -109,6 +107,12 @@ void debug_print_op(const char *op, const char *msg, ...) {
 #endif
 }
 
+void debug_newline() {
+#if defined(DEBUG)
+    printf("\n");
+#endif
+}
+
 /// @return The size of the given file
 size_t get_file_size(FILE *file) {
     if (file == NULL) {
@@ -159,6 +163,9 @@ u_int8_t extract_op_from_string(const char *line) {
     }
     if (strcmp(copy, "SCANF") == 0) {
         return SCANF;
+    }
+    if (strcmp(copy, "JMPR") == 0) {
+        return JMPR;
     }
     if (strcmp(copy, "JMP") == 0) {
         return JMP;
@@ -362,9 +369,7 @@ void interprete(const char *path) {
             }
         }
         pc++;
-#if defined(DEBUG)
-        printf("\n");
-#endif
+        debug_newline();
     }
 
 #if defined(DEBUG)
@@ -375,3 +380,4 @@ void interprete(const char *path) {
     free(memory);
     free(assembly_source);
 }
+

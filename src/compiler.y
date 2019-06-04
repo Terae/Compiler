@@ -23,7 +23,7 @@
 
     // Global vars
     T_Type type_var;
-		T_Qualifier type_qualifier;
+    T_Qualifier type_qualifier;
 
     /** Symbols **/
     // functions
@@ -41,7 +41,7 @@
     S_SYMBOL *addVar(const char *name) {
         return addVarWithType(name, type_var);
     }
-    
+
     void PatchAddOrDieFunction(const char * name, int addr, int nbParam){
       S_Functions * temp = getFunctionByName(name);
       if (temp != NULL){
@@ -179,7 +179,7 @@ PushBlocFunction: {pushBlock();}
 
 
 // Verify if body not inserted yet
-FunctionDefinition : FinalType tID '(' PushBlocFunction Params ')' { PatchAddOrDieFunction($2,count_assembly,$5); } FunctionStatementCompound
+FunctionDefinition : FinalType tID '(' PushBlocFunction Params ')' { PatchAddOrDieFunction($2,count_assembly - 1,$5); } FunctionStatementCompound
                    | FinalType tID '(' PushBlocFunction Params ')' End  { popBlock(); createSpecFunction($2,$5); };
 
 FunctionCall : tID {pushBlock();is_in_function_call=1;} '(' ArgumentExpressionList ')' { printSymbolTable(); is_in_function_call=0;popBlock();S_Functions * f = getFunctionByName($1);
@@ -279,7 +279,7 @@ ExpressionPrimary : tID {
                                 } else {
                                     if (is_in_function_call){
                                       //$$ = id;
-																			$$ = createTmpSymbolFromSymbol(id);
+                                      $$ = createTmpSymbolFromSymbol(id);
                                       //handleArgumentsFunctions(id);
                                     }else{
                                       $$ = id;
@@ -596,11 +596,11 @@ int main(int argc, char const **argv) {
     initAssemblyOutput(outputPath);
 
     // Init esp
-    writeAssembly(AFC" %s %d",esp, getESP());
+    writeAssembly(AFC" %s, %d",esp, getESP());
     // Jump to main (undefined addr)
     writeAssembly(JMP" NULL");
     yyparse();
-    
+
     S_Functions * mainFunc=getFunctionByName("main");
     if (mainFunc != NULL){
       patchJumpAssembly(1, mainFunc->addr);
@@ -612,7 +612,7 @@ int main(int argc, char const **argv) {
 
     resetFunctionsTable();
     resetSymbolTable();
-    
+
     if(errorsOccured() > 0) {
         fprintf(stderr, "\x1b[0m\x1b[41m%d errors occured during compilation, which is aborted.\x1b[0m\n", errorsOccured());
         return FAILURE_COMPILATION;

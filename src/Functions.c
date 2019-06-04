@@ -103,7 +103,7 @@ void printFunctionsTable() {
         if (FunctionTable->head != NULL) {
             aux = FunctionTable->head;
             while (aux != NULL) {
-                printf("Functions : %s at %d\n", aux->name, aux->addr);
+                printf("Functions: %s at %d\n", aux->name, aux->addr);
                 aux = aux->next;
             }
             printf("/*****************************************************/\033[0m\n\n");
