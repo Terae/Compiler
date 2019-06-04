@@ -28,7 +28,7 @@ typedef struct Symbol {
     char *name;
     T_Type type;
     T_Qualifier qualifier;
-    // int isInitialized;
+    int isInitialized;
     unsigned int depth;
     struct Symbol *next;
 } S_SYMBOL;
@@ -70,7 +70,9 @@ void popAllTmp(void);
 void popOneTmp(void);
 
 /// Meta-data of symbols
+int isConst(S_SYMBOL *s);
 int isTmp(S_SYMBOL *s);
+int isInitialized(S_SYMBOL *s);
 
 // Free it if tmp only
 void freeIfTmp(S_SYMBOL *s);
@@ -80,6 +82,7 @@ int getSymbolSize(const S_SYMBOL *s);
 
 // Show it
 char *typeToString(T_Type type);
+char *qualifierToString(T_Qualifier qualifier);
 
 // To print (debug) in green
 void printSymbolTable();

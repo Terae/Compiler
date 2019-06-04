@@ -28,9 +28,11 @@ int **f3(int var, const char ch) {
     ;
 
     int value = 3;
-    
 
     int ret = 8;
+
+    c = c;
+
     return &ret;
 }
 

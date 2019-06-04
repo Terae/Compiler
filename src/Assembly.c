@@ -146,9 +146,14 @@ S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *valu
         return NULL;
     }
 
-    if (isConst(id)) {
+    // The actual gramar forces const variables to be initialized at their declaration
+    if (isConst(id) && isInitialized(id)) {
         yyerror("Impossible to assign the result to a const value.");
         return NULL;
+    }
+
+    if (isInitialized(value) == 0) {
+        warning("'%s' is used uninitialized", value->name);
     }
 
     //writeDebug("%s assignment operation", op);
@@ -156,6 +161,7 @@ S_SYMBOL *binaryOperationAssignment(const char *op, S_SYMBOL *id, S_SYMBOL *valu
     writeAssembly(LOAD" %s, %d", r2, value->addr);
     writeAssembly("%s %d, %d, %d", op, id->addr, id->addr, value->addr);
     freeIfTmp(value);
+    id->isInitialized = 1;
     return id;
 }
 
@@ -165,9 +171,14 @@ void affectation(S_SYMBOL *id, S_SYMBOL *value) {
         return;
     }
 
-    if (isConst(id)) {
+    // The actual gramar forces const values to be initialized at their declaration
+    if (isConst(id) && isInitialized(id)) {
         yyerror("Impossible to assign the result to a const value.");
         return;
+    }
+
+    if (isInitialized(value) == 0) {
+        warning("'%s' is used uninitialized", value->name);
     }
 
 #if defined(DEBUG)
@@ -181,6 +192,7 @@ void affectation(S_SYMBOL *id, S_SYMBOL *value) {
     //writeAssembly(COP" %d, %d", id->addr, value->addr);
 #endif
     freeIfTmp(value);
+    id->isInitialized = 1;
 }
 
 S_SYMBOL *createConstant(T_Type type, int value) {

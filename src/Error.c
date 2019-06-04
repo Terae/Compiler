@@ -16,7 +16,7 @@ void yyerror(const char *msg, ...) {
     va_list args;
 
     va_start(args, msg);
-    fprintf(stderr, "ERROR line %d: ", count_line);
+    fprintf(stderr, "\033[1;31mERROR line %d: \033[0m", count_line);
     vfprintf(stderr, msg, args);
     fputc('\n', stderr);
     va_end(args);
@@ -34,6 +34,7 @@ void warning(const char *msg, ...) {
     va_list args;
 
     va_start(args, msg);
+    fprintf(stderr, "\033[1;35mWarning line %d:\033[0m ", count_line);
     vfprintf(stderr, msg, args);
     fputc('\n', stderr);
     va_end(args);

@@ -98,7 +98,7 @@ S_Functions   *getFunctionByName(const char *name) {
 void printFunctionsTable() {
     S_Functions *aux = NULL;
     if (FunctionTable != NULL) {
-        printf("\n\033[0;31m/*****************************************************/\n");
+        printf("\n\033[0;33m/*****************************************************/\n");
         printf("Size : %d\n", FunctionTable->size);
         if (FunctionTable->head != NULL) {
             aux = FunctionTable->head;

@@ -23,7 +23,7 @@
 
     // Global vars
     T_Type type_var;
-    T_Qualifier type_qualifier;
+    T_Qualifier qualifier_var;
 
     /** Symbols **/
     // functions
@@ -32,7 +32,7 @@
         if(strcmp(name, "") == 0) {
             symbol = createTmpSymbol(type);
         } else {
-            symbol = createSymbol(name, type, type_qualifier);
+            symbol = createSymbol(name, type, qualifier_var);
         }
 
         return symbol;
@@ -167,7 +167,7 @@ End : error ';'
                 // yyerrok();
                 // enableErrorReporting();
         }
-    | ';' { popAllTmp(); type_qualifier = Nothing; };
+    | ';' { popAllTmp(); qualifier_var = Nothing; };
 
 Program :         ExternalDeclaration
         | Program ExternalDeclaration;
@@ -175,7 +175,7 @@ Program :         ExternalDeclaration
 ExternalDeclaration : FunctionDefinition
                     | Declaration;
 
-PushBlocFunction: {pushBlock();}
+PushBlocFunction: { pushBlock(); }
 
 
 // Verify if body not inserted yet
@@ -202,7 +202,7 @@ TypeSpecifier : tINT  { $$ = type_var = Integer; }
               | tCHAR { $$ = type_var = Character; }
               | tBOOL { $$ = type_var = Boolean; };
 
-TypeQualifier : tCONST { $$ = type_qualifier = Const; };
+TypeQualifier : tCONST { $$ = qualifier_var = Const; };
 
 TypeQualifierList :                   TypeQualifier
                   | TypeQualifierList TypeQualifier;
@@ -235,13 +235,13 @@ Declaration : FinalType TypedDeclaration;
 ParamsNamedList :                     ParamNamed { $$=$$+1; }
                 | ParamsNamedList ',' ParamNamed { $$=$$+1; };
 
-ParamNamed : FinalType tID { addVarWithType($2, $1); };
+ParamNamed : FinalType tID { addVarWithType($2, $1); qualifier_var = Nothing; };
 
 // int, char, ...
 ParamsUnnamedList :                       ParamUnnamed { $$=$$+1; }
                   | ParamsUnnamedList ',' ParamUnnamed { $$=$$+1; };
 
-ParamUnnamed : FinalType;
+ParamUnnamed : FinalType { qualifier_var = Nothing; };
 
 Params :                   { implementation_enabled = 1; $$= 0; }
        | ParamsNamedList   { implementation_enabled = 1; $$=$1; }

@@ -83,7 +83,7 @@ S_SYMBOL *createSymbol(const char *name, T_Type type, T_Qualifier qualifier) {
         symbol->name = strdup(name);
         symbol->type = type;
         symbol->qualifier = qualifier;
-
+        symbol->isInitialized = 0;
         symbol->next = SymbolTable->head;
         SymbolTable->head = symbol;
 
@@ -171,6 +171,10 @@ int isTmp(S_SYMBOL *s) {
     return strcmp(s->name, tmpSymbol) == 0;
 }
 
+int isInitialized(S_SYMBOL *s) {
+    return s->isInitialized || isTmp(s);
+}
+
 void freeIfTmp(S_SYMBOL *s) {
     if (isTmp(s)) {
         if (SymbolTable->head == s) {
@@ -198,7 +202,6 @@ int getSymbolSize(const S_SYMBOL *s) {
     }
 }
 
-
 char *typeToString(T_Type type) {
     switch (type) {
         case Integer:
@@ -214,23 +217,35 @@ char *typeToString(T_Type type) {
     }
 }
 
+char *qualifierToString(T_Qualifier qualifier) {
+    switch (qualifier) {
+        case Const:
+            return "const";
+        case Nothing:
+            return "  -  ";
+        default:
+            return "_error";
+        }
+}
+
 void printSymbolTable() {
     if (SymbolTable != NULL) {
-        printf("\n\033[0;32m/************************************************************************/\n");
+        printf("\n\033[0;32m/************************************************************************************************/\n");
         printf("Size : %d \n", SymbolTable->size);
-        printf("-------------------------------------------------------------------------\n");
+        printf("-------------------------------------------------------------------------------------------------\n");
         S_SYMBOL *aux = SymbolTable->head;
         while (aux != NULL) {
-            printf("Index: %d,\tvarname: '%s',\taddress: %d,\tType: %s,\tdepth: %d\n",
+            printf("Index: %d,\tvarname: '%s',\taddress: %d,\tType: %s,\tQualifier: %s,\tdepth: %d\n",
                    aux->index,
                    (strcmp(aux->name, tmpSymbol) == 0 ? "\x1b[3m\x1b[4mtmp\x1b[0m\033[0;32m" : aux->name),
                    aux->addr,
                    typeToString(aux->type),
+                   qualifierToString(aux->qualifier),
                    aux->depth);
-            printf("-------------------------------------------------------------------------\n");
+            printf("-------------------------------------------------------------------------------------------------\n");
             aux = aux->next;
         }
-        printf("/************************************************************************/\033[0m\n\n");
+        printf("/************************************************************************************************/\033[0m\n\n");
     }
 }
 
