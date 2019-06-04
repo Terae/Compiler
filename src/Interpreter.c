@@ -12,9 +12,9 @@
 
 #define STRINGIFY(X) #X
 
-#define STACK_CAPACITY 1000
 #define MAX_LINES      10000
 #define SIZE_MEMORY    100000
+#define SIZE_REGISTERS 16
 
 #define ADD   0x1
 #define MUL   0x2
@@ -60,19 +60,9 @@ int main(int argc, const char **argv) {
 }
 
 typedef u_int16_t memory_size_t;
-static int esp = 0;
-static memory_size_t stack[STACK_CAPACITY];
 static memory_size_t *memory;
-
-void push(memory_size_t value) {
-    assert(esp < STACK_CAPACITY - 1);
-    stack[esp++] = value;
-}
-
-memory_size_t pop(void) {
-    assert(esp > 0);
-    return stack[--esp];
-}
+static memory_size_t registers[SIZE_REGISTERS];
+static memory_size_t *r0, *r1, *r2, *esp, *tmpR;
 
 void error_read(const char *op, int expected, int got) {
     fprintf(stderr, "The op code %s needs %d operand%s, but only %d found.\n", op, expected, (expected > 1 ? "s" : ""),
@@ -86,11 +76,11 @@ void error_read(const char *op, int expected, int got) {
 
 void debug_print_memory(int pc) {
 #if defined(DEBUG)
-    printf("Line: %d\nStackPointer: %d\n", pc + 1, esp);
+    printf("Line: %d\nESP: %d\n", pc + 1, *esp);
 
-    printf("r0: %hu\nr1: %hu\nr2: %hu\n", memory[0], memory[1], memory[2]);
+    printf("r0: %hu\nr1: %hu\nr2: %hu\ntmpR: %hu\n", *r0, *r1, *r2, *tmpR);
     for (int i = 0; i < 10; ++i) {
-        printf("\tmemory[%d]: %d\n", i + 4000, memory[i + 4000]);
+        printf("\tmemory[%d]: %d\n", i, memory[i]);
     }
 #endif
 }
@@ -177,10 +167,16 @@ u_int8_t extract_op_from_string(const char *line) {
 }
 
 u_int16_t *get_memory(int addr) {
-    addr += esp;
+    addr += *esp;
     assert(addr >= 0);
     assert(addr < SIZE_MEMORY);
     return &memory[addr];
+}
+
+u_int16_t *get_register(int addr) {
+    assert(addr >= 0);
+    assert(addr < SIZE_REGISTERS);
+    return &registers[addr];
 }
 
 void interprete(const char *path) {
@@ -219,6 +215,16 @@ void interprete(const char *path) {
     u_int8_t op;
     u_int16_t arg1, arg2, arg3;
     int pc = 0;
+    r0 = registers + 0;
+    r1 = registers + 1;
+    r2 = registers + 2;
+    esp = registers + 3;
+    tmpR = registers + 4;
+    *esp = 0;
+
+    for (u_int16_t reg = 0; reg < SIZE_REGISTERS; ++reg) {
+        registers[reg] = 0;
+    }
 
     while (pc < (int)lines_count) {
         char *line = &assembly_source[lines_index[pc]];
@@ -242,79 +248,77 @@ void interprete(const char *path) {
         switch (op) {
             case ADD: {
                 READ_THREE(STRINGIFY(ADD));
-                *get_memory(arg1) = *get_memory(arg2) + *get_memory(arg3);
+                *get_register(arg1) = *get_register(arg2) + *get_register(arg3);
                 debug_print_op(STRINGIFY(ADD), "@%d <- @%d + @%d", arg1, arg2, arg3);
                 break;
             }
             case MUL: {
                 READ_THREE(STRINGIFY(MUL));
-                *get_memory(arg1) = *get_memory(arg2) * *get_memory(arg3);
+                *get_register(arg1) = *get_register(arg2) * *get_register(arg3);
                 debug_print_op(STRINGIFY(MUL), "@%d <- @%d * @%d", arg1, arg2, arg3);
                 break;
             }
             case SOU: {
                 READ_THREE(STRINGIFY(SOU));
-                *get_memory(arg1) = *get_memory(arg2) - *get_memory(arg3);
+                *get_register(arg1) = *get_register(arg2) - *get_register(arg3);
                 debug_print_op(STRINGIFY(SOU), "@%d <- @%d - @%d", arg1, arg2, arg3);
                 break;
             }
             case DIV: {
                 READ_THREE(STRINGIFY(DIV));
-                *get_memory(arg1) = *get_memory(arg2) / *get_memory(arg3);
+                *get_register(arg1) = *get_register(arg2) / *get_register(arg3);
                 debug_print_op(STRINGIFY(DIV), "@%d <- @%d / @%d", arg1, arg2, arg3);
                 break;
             }
             case COP: {
                 READ_TWO(STRINGIFY(COP));
-                //*get_memory(arg1) = *get_memory(arg2);
-                //debug_print_op(STRINGIFY(COP), "@%d <- @%d", arg1, arg2);
-                // COPY isn't memory but registers.
-                debug_print_op(STRINGIFY(COP), "%d <- %d", arg1, arg2);
+                *get_register(arg1) = *get_register(arg2);
+                debug_print_op(STRINGIFY(COP), "@%d <- @%d", arg1, arg2);
                 break;
             }
             case AFC: {
                 READ_TWO(STRINGIFY(AFC));
-                *get_memory(arg1) = arg2;
+                *get_register(arg1) = arg2;
                 debug_print_op(STRINGIFY(AFC), "@%d <- %d", arg1, arg2);
                 break;
             }
             case LOAD: {
                 READ_TWO(STRINGIFY(LOAD));
-                *get_memory(arg1) = memory[arg2];
+                *get_register(arg1) = *get_memory(arg2);
                 debug_print_op(STRINGIFY(LOAD), "@%d <- mem[%d]", arg1, arg2);
                 break;
             }
             case STORE: {
                 READ_TWO(STRINGIFY(STORE));
-                memory[arg1] = *get_memory(arg2);
+                *get_memory(arg1) = *get_register(arg2);
                 debug_print_op(STRINGIFY(STORE), "mem[%d] <- @%d", arg1, arg2);
                 break;
             }
             case EQU: {
                 READ_THREE(STRINGIFY(EQU));
-                *get_memory(arg1) = (u_int16_t)(*get_memory(arg2) == *get_memory(arg3));
+                *get_register(arg1) = (u_int16_t)(*get_register(arg2) == *get_register(arg3));
                 debug_print_op(STRINGIFY(EQU), "@%d <- @%d == @%d", arg1, arg2, arg3);
                 break;
             }
             case INF: {
                 READ_THREE(STRINGIFY(INF));
-                *get_memory(arg1) = (u_int16_t)(*get_memory(arg2) < *get_memory(arg3));
+                *get_register(arg1) = (u_int16_t)(*get_register(arg2) < *get_register(arg3));
                 debug_print_op(STRINGIFY(INF), "@%d <- @%d < @%d", arg1, arg2, arg3);
                 break;
             }
             /*case INFE: {
                 READ_THREE(STRINGIFY(INFE));
-                *get_memory(arg1) = *get_memory(arg2) <= *get_memory(arg3);
+                *get_register(arg1) = *get_register(arg2) <= *get_register(arg3);
                 break;
             }
             case SUP: {
                 READ_THREE(STRINGIFY(SUP));
-                *get_memory(arg1) = *get_memory(arg2) > *get_memory(arg3);
+                *get_register(arg1) = *get_register(arg2) > *get_register(arg3);
                 break;
             }
             case SUPE: {
                 READ_THREE(STRINGIFY(SUPE));
-                *get_memory(arg1) = *get_memory(arg2) >= *get_memory(arg3);
+                *get_register(arg1) = *get_register(arg2) >= *get_register(arg3);
                 break;
             }*/
             case PRINT: {
@@ -331,36 +335,32 @@ void interprete(const char *path) {
                     while (getchar() != '\n') {}
                     arg2 = 0;
                 }
-                *get_memory(*get_memory(arg1) - esp) = arg2;
+                *get_register(arg1) = arg2;
                 break;
+            }
+            case JMPR: {
+                READ_ONE(STRINGIFY(JMPR));
+                pc = *get_register(arg1);
+                debug_print_op(STRINGIFY(JMPR), "PC <- @%d", arg1);
+                debug_newline();
+                continue;
             }
             case JMP: {
                 READ_ONE(STRINGIFY(JMP));
                 pc = arg1;
                 debug_print_op(STRINGIFY(JMP), "PC <- %d", arg1);
+                debug_newline();
                 continue;
             }
             case JMPC: {
                 READ_TWO(STRINGIFY(JMPC));
-                if (*get_memory(arg2) == 0) {
+                if (*get_register(arg2) == 0) {
                     pc = arg1;
                     debug_print_op(STRINGIFY(JMPC), "PC <- %d (@%d == 0)", arg1, arg2);
+                    debug_newline();
                     continue;
                 }
-                debug_print_op(STRINGIFY(JMPC), "no conditional jump (@%d == %hu != 0)", arg2, *get_memory(arg2));
-                break;
-            }
-            case PUSH: {
-                READ_ONE(STRINGIFY(PUSH));
-                push(*get_memory(arg1));
-                debug_print_op(STRINGIFY(PUSH), "stack.push(%hu), esp = %d", *get_memory(arg1), esp);
-                break;
-            }
-            case POP: {
-                READ_ONE(STRINGIFY(POP));
-                memory_size_t value = pop();
-                *get_memory(arg1) = value;
-                debug_print_op(STRINGIFY(POP), "stack.pop() == %hu, esp = %d", value, esp);
+                debug_print_op(STRINGIFY(JMPC), "no conditional jump (@%d == %hu != 0)", arg2, *get_register(arg2));
                 break;
             }
             default: {
