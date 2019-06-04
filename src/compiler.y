@@ -579,7 +579,7 @@ int main(int argc, char const **argv) {
     initAssemblyOutput(outputPath);
 
 		// Init esp
-		writeAssembly(AFC" %s %d",esp, getESP());
+		writeAssembly(AFC" %s, %d",esp, getESP());
 		// Jump to main (undefined addr)
 		writeAssembly(JMP" NULL");
 		yyparse();
