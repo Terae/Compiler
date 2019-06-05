@@ -114,6 +114,7 @@
 %type <nbr> ParamsUnnamedList
 %type <func> FunctionCall
 %type <nbr> ArgumentExpressionList
+%type <nbr> ArgList
 
 %token tMAIN tPRINTF tSCANF
 %token tCONST tINT tVOID tCHAR tENUM tBOOL
@@ -188,7 +189,20 @@ FunctionCall : tID {pushBlock();is_in_function_call=1;} '(' ArgumentExpressionLi
   }else{
     if (f->addr != -1){
       $$ = f;
-      writeAssembly(AFC" 0, %d ; nbParam in 0",f->nbParam);
+			int retAddr = count_assembly+7;
+      writeAssembly(AFC" %s, %d ; @retour",tmpR,retAddr);
+			S_SYMBOL * ret=createTmpSymbol(Integer);
+      writeAssembly(STORE" %d, %s ; @retour",ret->addr,tmpR);
+
+			// Les 4 o viennent du fait qu'on ajoute delta (2o) + @retour (2o);
+			int delta = $4 + 4;
+			
+			// Load delta in tmpR
+      writeAssembly(AFC" %s, %d ; delta to next esp",tmpR,delta);
+			S_SYMBOL * deltaSymbol = createTmpSymbol(Integer);
+			writeAssembly(STORE" %d, %s",deltaSymbol->addr,tmpR);
+			
+      writeAssembly(AFC" 0, %d ; argSize in 0",delta);
       writeAssembly(ADD" %s, XX  ; Increase ebp",esp,f->nbParam);
       writeAssembly(JMP" %d    ; jump to %s",f->addr,f->name);
     }else{
@@ -320,8 +334,10 @@ ExpressionPostfix : ExpressionPrimary
                         };
 
 ArgumentExpressionList :                      { $$ = 0;      }
-                       | ExpressionAssignment { $$ = 1;}
-                       | ExpressionAssignment ',' ArgumentExpressionList {$$=$3+1;} ;
+                       | ArgList { $$ =$1 ; };
+
+ArgList : ExpressionAssignment { $$ = getSymbolSize($1);}
+        | ExpressionAssignment ',' ArgList {$$=$3+getSymbolSize($1);} ;
 
 ExpressionUnary : ExpressionPostfix
                 | tINCR   ExpressionUnary
@@ -585,7 +601,11 @@ StatementIteration :               tWHILE '(' { $2 = count_assembly; } Expressio
 StatementJump : tCONTINUE End
               | tBREAK End
               | tRETURN End
-              | tRETURN Expression End {writeAssembly("RETURN "); printf ("Value to return named %s\n", $2->name);};
+              | tRETURN Expression End {
+							writeAssembly("RETURN "); 
+							writeAssembly(LOAD" %s, %d ; load value into retR",retR,$2->addr);
+							writeAssembly(LOAD" %s, %d ; load @retour into tmpR",retR,$2->addr);
+						printf ("Value to return named %s\n", $2->name);};
 
 %%
 
