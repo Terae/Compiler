@@ -1,0 +1,3 @@
+[submodule "VHDL"]
+	path = VHDL
+	url = https://github.com/Walleza1/CompilerVHDL.git
