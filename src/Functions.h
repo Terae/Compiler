@@ -5,8 +5,6 @@
 #ifndef COMPILER_FUNCTIONS_H
 #define COMPILER_FUNCTIONS_H
 
-
-
 typedef struct func {
     int addr;
     char *name;
@@ -32,4 +30,6 @@ S_Functions *createDeclarativeFunction(const char *name, int addr, unsigned int 
 S_Functions   *getFunctionByName(const char *name);
 
 void printFunctionsTable();
+
 #endif //COMPILER_FUNCTIONS_H
+

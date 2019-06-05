@@ -225,7 +225,7 @@ char *qualifierToString(T_Qualifier qualifier) {
             return "  -  ";
         default:
             return "_error";
-        }
+    }
 }
 
 void printSymbolTable() {

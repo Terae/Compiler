@@ -30,7 +30,7 @@ On a également inséré les trois instructions suivantes :
 
 Opération | Code | OP | A | B | C | Description | VHDL
 ----------|------|----|---|---|---|-----------|-----
-Printf | 0xB | PRINT | @i | - | - | printf("%d", *i) | non
+Printf | 0xB | PRINT | @i | - | - | printf("%d", \*i) | non
 Scanf | 0xC | SCANF | Ri | - | - | [Ri] <- scanf() | non
 Saut par registre | 0xD | JMPR | Ri | - | - | Saut à l'adresse [Ri] | oui
 

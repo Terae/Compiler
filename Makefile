@@ -62,5 +62,5 @@ all: build interpreter run
 
 valgrind: build interpreter
 	valgrind $(BUILD_DIR)/$(PROG_NAME) --leak-check=full -vv < $(TEST_DIR)/input.c
-	
+
 $(V).SILENT:
