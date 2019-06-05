@@ -39,6 +39,8 @@
 #define JMP   0xE
 #define JMPC  0xF
 
+#define NOP  0x90
+
 void print_help(const char *program) {
     fprintf(stderr, "Usage: %s <assembly_file.s>\n", program);
     exit(1);
@@ -162,6 +164,9 @@ u_int8_t extract_op_from_string(const char *line) {
     }
     if (strcmp(copy, "JMPC") == 0) {
         return JMPC;
+    }
+    if (strcmp(copy, "NOP") == 0) {
+        return NOP;
     }
     return 255;
 }
@@ -323,12 +328,13 @@ void interprete(const char *path) {
             }*/
             case PRINT: {
                 READ_ONE(STRINGIFY(PRINT));
-                debug_print_op(STRINGIFY(PRINT), "printf(%d)", arg1);
+                debug_print_op(STRINGIFY(PRINT), "printf(%d)", *get_memory(arg1));
                 printf("printf: \x1b[32m%d\x1b[0m\n", *get_memory(arg1));
                 break;
             }
             case SCANF: {
                 READ_ONE(STRINGIFY(SCANF));
+                printf("scanf?  ");
                 debug_print_op(STRINGIFY(SCANF), "scanf(%%d)");
                 char c;
                 if (scanf("%hu%c", &arg2, &c) != 2 || c != '\n') {
@@ -361,6 +367,10 @@ void interprete(const char *path) {
                     continue;
                 }
                 debug_print_op(STRINGIFY(JMPC), "no conditional jump (@%d == %hu != 0)", arg2, *get_register(arg2));
+                break;
+            }
+            case NOP: {
+                debug_print_op(STRINGIFY(NOP), "NOP");
                 break;
             }
             default: {

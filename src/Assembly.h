@@ -47,6 +47,8 @@ extern int count_assembly;
     #define PUSH  "PUSH " // 0x10
     #define POP   "POP  " // 0x11
 
+    #define NOP   "NOP  " // 0x90
+
 #else // defined(TEXT_ASSEMBLY)
 
     #define r0  "00"
@@ -78,6 +80,8 @@ extern int count_assembly;
     #define JMPR  "0x0D"
     #define JMP   "0x0E"
     #define JMPC  "0x0F"
+
+    #define NOP   "0x90"
 
 #endif
 
