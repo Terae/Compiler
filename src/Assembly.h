@@ -11,7 +11,21 @@ extern int count_assembly;
 
 #define TEXT_ASSEMBLY
 #define DEBUG
-
+#if defined(DEBUG)
+    #define r0  "r0"
+    #define r1  "r1"
+    #define r2  "r2"
+    #define esp "esp"
+    #define tmpR "tmpR"
+		#define retR "retR"
+#else
+    #define r0  "00"
+    #define r1  "01"
+    #define r2  "02"
+    #define esp "03"
+    #define tmpR "04"
+		#define retR "05"
+#endif
 #if defined(TEXT_ASSEMBLY)
 
     #define r0   "0"
