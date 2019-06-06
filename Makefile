@@ -18,6 +18,8 @@ PROG_NAME=YaccUza.out
 # yaccuza
 # duralex
 
+GCC_FLAGS=-ll -ly -D_GNU_SOURCE=1 -std=gnu99 -Wall -Wextra
+
 install:
 	sudo apt install bison flex
 
@@ -42,7 +44,7 @@ lex: $(SOURCE_DIR)/compiler.l yacc
 
 build: clean lib yacc lex
 	cd $(BUILD_DIR)
-	gcc -o $(PROG_NAME) $(LEX_OUTPUT) $(YACC_OUTPUT).c $(SOURCE_FILES) -ll -ly -Wall -Wextra -D_GNU_SOURCE=1 -std=gnu99
+	gcc -o $(PROG_NAME) $(LEX_OUTPUT) $(YACC_OUTPUT).c $(SOURCE_FILES) $(GCC_FLAGS)
 
 run: build
 	$(BUILD_DIR)/$(PROG_NAME) < $(TEST_DIR)/input.c
