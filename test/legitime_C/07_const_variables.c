@@ -1,5 +1,5 @@
-const int global;
+const int global = 42;
 
 int main() {
-    const int local;
+    const int local = global;
 }

@@ -175,6 +175,22 @@ int isInitialized(S_SYMBOL *s) {
     return s->isInitialized || isTmp(s);
 }
 
+S_SYMBOL *getConstUninitialized() {
+    S_SYMBOL *result = NULL;
+    if (SymbolTable->head != NULL) {
+        S_SYMBOL *aux = SymbolTable->head;
+
+        while (aux != NULL && isConst(aux)) {
+            if (!isInitialized(aux)) {
+                result = aux;
+                break;
+            }
+            aux = aux->next;
+        }
+    }
+    return result;
+}
+
 void freeIfTmp(S_SYMBOL *s) {
     if (isTmp(s)) {
         if (SymbolTable->head == s) {

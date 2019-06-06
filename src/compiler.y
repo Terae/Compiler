@@ -168,7 +168,15 @@ End : error ';'
                 // yyerrok();
                 // enableErrorReporting();
         }
-    | ';' { popAllTmp(); qualifier_var = Nothing; };
+    | ';'
+        {
+                popAllTmp();
+                qualifier_var = Nothing;
+                S_SYMBOL *constUninitialized = getConstUninitialized();
+                if (constUninitialized != NULL) {
+                    yyerror("The const variable '%s' isn't initialized", constUninitialized->name);
+                }
+        };
 
 Program :         ExternalDeclaration
         | Program ExternalDeclaration;

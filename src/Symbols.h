@@ -74,6 +74,8 @@ int isConst(S_SYMBOL *s);
 int isTmp(S_SYMBOL *s);
 int isInitialized(S_SYMBOL *s);
 
+S_SYMBOL *getConstUninitialized();
+
 // Free it if tmp only
 void freeIfTmp(S_SYMBOL *s);
 

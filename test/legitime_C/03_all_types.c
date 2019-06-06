@@ -1,15 +1,15 @@
 int main() {
     int a;
-    const int b;
+    const int b = 5;
     int* c;
-    const int *d;
+    const int *d = &b;
     int **e;
-    const int const* f;
+    const int const* f = 0x80005321;
     char g;
-    const char h;
-    const char *i;
+    const char h = 'c';
+    const char *i = &h;
     char **j;
-    char const ***k;
+    char const ***k = NULL;
     char l = 'a';
     char m, n, o = 'o', p = 'p';
     char q = '$';
